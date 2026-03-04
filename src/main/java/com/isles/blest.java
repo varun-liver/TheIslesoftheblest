@@ -45,16 +45,16 @@ public class blest {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
     // Creates a new Block with the id "theislesoftheblest:sky_grass", combining the namespace and path
-    public static final RegistryObject<Block> SKY_GRASS = BLOCKS.register("sky_grass", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
+    public static final RegistryObject<Block> sky_grass = BLOCKS.register("sky_grass", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
     // Creates a new BlockItem with the id "theislesoftheblest:sky_grass", combining the namespace and path
-    public static final RegistryObject<Item> SKY_GRASS_ITEM = ITEMS.register("sky_grass", () -> new BlockItem(SKY_GRASS.get(), new Item.Properties()));
+    public static final RegistryObject<Item> sky_grass_ITEM = ITEMS.register("sky_grass", () -> new BlockItem(sky_grass.get(), new Item.Properties()));
 
     // Creates a new food item with the id "theislesoftheblest:example_id", nutrition 1 and saturation 2
 //    public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () -> new Item(new Item.Properties().food(new FoodProperties.Builder().alwaysEat().nutrition(1).saturationMod(2f).build())));
 
     // Creates a creative tab with the id "theislesoftheblest:example_tab" for the example item, that is placed after the combat tab
-    public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> SKY_GRASS_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
-        output.accept(SKY_GRASS_ITEM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
+    public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> sky_grass_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
+        output.accept(sky_grass_ITEM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
     }).build());
 
     public blest() {
@@ -94,7 +94,7 @@ public class blest {
 
     // Add the example block item to the building blocks tab
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) event.accept(SKY_GRASS_ITEM);
+        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) event.accept(sky_grass_ITEM);
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
