@@ -53,7 +53,8 @@ public class blest {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "theislesoftheblest" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
-
+    //----------------------------------BLOCK/ITEM REG----------------------------------
+    //----------------------------------BLOCK/ITEM REG----------------------------------
     // Creates a new Block with the id "theislesoftheblest:sky_grass", combining the namespace and path
     public static final RegistryObject<Block> sky_grass = BLOCKS.register("sky_grass", () -> new Block(
             BlockBehaviour.Properties.of()
@@ -62,9 +63,15 @@ public class blest {
                     .requiresCorrectToolForDrops()));
     // Creates a new BlockItem with the id "theislesoftheblest:sky_grass", combining the namespace and path
     public static final RegistryObject<Item> sky_grass_ITEM = ITEMS.register("sky_grass", () -> new BlockItem(sky_grass.get(), new Item.Properties()));
-
+    //----------------------------------ITEM REG----------------------------------
+    //----------------------------------ITEM REG----------------------------------
     // Creates a new food item with the id "theislesoftheblest:example_id", nutrition 1 and saturation 2
     public static final RegistryObject<Item> golden_cherry = ITEMS.register("golden_cherry", () -> new Item(new Item.Properties().food(new FoodProperties.Builder().alwaysEat().nutrition(3).saturationMod(2f).build())));
+    public static final RegistryObject<Item> sky_crystal = ITEMS.register(
+            "sky_crystal",
+            () -> new Item(new Item.Properties())
+    );
+
     public static final RegistryObject<EntityType<SkyGuardianEntity>> sky_guardian = ENTITY_TYPES.register("sky_guardian",
             () -> EntityType.Builder.of(SkyGuardianEntity::new, MobCategory.MONSTER)
                     .sized(0.9F, 1.3F)
@@ -76,7 +83,8 @@ public class blest {
     public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> sky_grass_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
         output.accept(sky_grass_ITEM.get());
         output.accept(golden_cherry.get());
-        output.accept(sky_guardian_spawn_egg.get());// Add the example item to the tab. For your own tabs, this method is preferred over the event
+        output.accept(sky_guardian_spawn_egg.get());
+        output.accept(sky_crystal.get());
     }).build());
 
     public blest() {
