@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 @Mod(blest.MODID)
 public class blest {
 
-    // Define mod id in a common place for everything to reference
+    // Define mod id in a common place for everything to reference.
     public static final String MODID = "theislesoftheblest";
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
