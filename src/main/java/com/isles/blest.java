@@ -45,7 +45,11 @@ public class blest {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
     // Creates a new Block with the id "theislesoftheblest:sky_grass", combining the namespace and path
-    public static final RegistryObject<Block> sky_grass = BLOCKS.register("sky_grass", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).requiresCorrectToolForDrops()));
+    public static final RegistryObject<Block> sky_grass = BLOCKS.register("sky_grass", () -> new Block(
+            BlockBehaviour.Properties.of()
+                    .strength(0.8f,1.0f)
+                    .mapColor(MapColor.STONE)
+                    .requiresCorrectToolForDrops()));
     // Creates a new BlockItem with the id "theislesoftheblest:sky_grass", combining the namespace and path
     public static final RegistryObject<Item> sky_grass_ITEM = ITEMS.register("sky_grass", () -> new BlockItem(sky_grass.get(), new Item.Properties()));
 
