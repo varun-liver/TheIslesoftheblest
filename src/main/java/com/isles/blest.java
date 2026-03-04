@@ -54,7 +54,8 @@ public class blest {
 
     // Creates a creative tab with the id "theislesoftheblest:example_tab" for the example item, that is placed after the combat tab
     public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> sky_grass_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
-        output.accept(sky_grass_ITEM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
+        output.accept(sky_grass_ITEM.get());
+        output.accept(golden_cherry.get());// Add the example item to the tab. For your own tabs, this method is preferred over the event
     }).build());
 
     public blest() {
