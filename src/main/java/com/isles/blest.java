@@ -63,12 +63,18 @@ public class blest {
                     .requiresCorrectToolForDrops()));
     // Creates a new BlockItem with the id "theislesoftheblest:sky_grass", combining the namespace and path
     public static final RegistryObject<Item> sky_grass_ITEM = ITEMS.register("sky_grass", () -> new BlockItem(sky_grass.get(), new Item.Properties()));
+    public static final RegistryObject<Block> sky_crystal = BLOCKS.register("sky_crystal", () -> new Block(
+            BlockBehaviour.Properties.of()
+                    .strength(3.0f, 3.0f)
+                    .mapColor(MapColor.STONE)
+                    .requiresCorrectToolForDrops()));
+    public static final RegistryObject<Item> sky_crystal_ITEM = ITEMS.register("sky_crystal", () -> new BlockItem(sky_crystal.get(), new Item.Properties()));
     //----------------------------------ITEM REG----------------------------------
     //----------------------------------ITEM REG----------------------------------
     // Creates a new food item with the id "theislesoftheblest:example_id", nutrition 1 and saturation 2
     public static final RegistryObject<Item> golden_cherry = ITEMS.register("golden_cherry", () -> new Item(new Item.Properties().food(new FoodProperties.Builder().alwaysEat().nutrition(3).saturationMod(2f).build())));
-    public static final RegistryObject<Item> sky_crystal = ITEMS.register(
-            "sky_crystal",
+    public static final RegistryObject<Item> sky_catalyst = ITEMS.register(
+            "sky_catalyst",
             () -> new Item(new Item.Properties())
     );
 
@@ -82,9 +88,10 @@ public class blest {
     // Creates a creative tab with the id "theislesoftheblest:example_tab" for the example item, that is placed after the combat tab
     public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> sky_grass_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
         output.accept(sky_grass_ITEM.get());
+        output.accept(sky_crystal_ITEM.get());
         output.accept(golden_cherry.get());
         output.accept(sky_guardian_spawn_egg.get());
-        output.accept(sky_crystal.get());
+        output.accept(sky_catalyst.get());
     }).build());
 
     public blest() {
@@ -128,6 +135,8 @@ public class blest {
     // Add the example block item to the building blocks tab
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) event.accept(sky_grass_ITEM);
+        if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) event.accept(sky_crystal_ITEM.get());
+        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) event.accept(sky_catalyst.get());
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) event.accept(sky_guardian_spawn_egg);
     }
 
