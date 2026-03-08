@@ -93,8 +93,14 @@ public class blest {
             () -> EntityType.Builder.of(SkyGuardianEntity::new, MobCategory.MONSTER)
                     .sized(0.9F, 1.3F)
                     .build(MODID + ":sky_guardian"));
+    public static final RegistryObject<EntityType<TheInfectionEntity>> the_infection = ENTITY_TYPES.register("the_infection",
+            () -> EntityType.Builder.of(TheInfectionEntity::new, MobCategory.MONSTER)
+                    .sized(0.9F, 1.3F)
+                    .build(MODID + ":the_infection"));
     public static final RegistryObject<Item> sky_guardian_spawn_egg = ITEMS.register("sky_guardian_spawn_egg",
             () -> new ForgeSpawnEggItem(sky_guardian, 0x9dd5ef, 0x1c5f87, new Item.Properties()));
+    public static final RegistryObject<Item> the_infection_spawn_egg = ITEMS.register("the_infection_spawn_egg",
+            () -> new ForgeSpawnEggItem(the_infection, 0x4f5e3f, 0x101011, new Item.Properties()));
     //----------------------------------SKY TIER----------------------------------
     //----------------------------------SKY TIER----------------------------------
     private static final TagKey<Block> INCORRECT_FOR_SKY_TOOL =
@@ -150,6 +156,7 @@ public class blest {
         output.accept(sky_crystal_ITEM.get());
         output.accept(golden_cherry.get());
         output.accept(sky_guardian_spawn_egg.get());
+        output.accept(the_infection_spawn_egg.get());
         output.accept(sky_catalyst.get());
         output.accept(unshaped_sky_catalyst.get());
         output.accept(SKY_SWORD.get());
@@ -203,10 +210,12 @@ public class blest {
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) event.accept(sky_catalyst.get());
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) event.accept(unshaped_sky_catalyst.get());
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) event.accept(sky_guardian_spawn_egg);
+        if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) event.accept(the_infection_spawn_egg);
     }
 
     private void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(sky_guardian.get(), SkyGuardianEntity.createAttributes().build());
+        event.put(the_infection.get(), TheInfectionEntity.createAttributes().build());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -230,11 +239,13 @@ public class blest {
         @SubscribeEvent
         public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
             event.registerEntityRenderer(sky_guardian.get(), SkyGuardianRenderer::new);
+            event.registerEntityRenderer(the_infection.get(), TheInfectionRenderer::new);
         }
 
         @SubscribeEvent
         public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
             event.registerLayerDefinition(SkyGuardianModel.LAYER_LOCATION, SkyGuardianModel::createBodyLayer);
+            event.registerLayerDefinition(TheInfectionModel.LAYER_LOCATION, TheInfectionModel::createBodyLayer);
         }
     }
 }
