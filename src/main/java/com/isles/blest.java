@@ -3,6 +3,9 @@ package com.isles;
 import com.isles.client.renderer.SkyGuardianRenderer;
 import com.isles.client.renderer.SkyGuardianModel;
 import com.isles.entity.SkyGuardianEntity;
+import com.isles.client.renderer.TheInfectionModel;
+import com.isles.client.renderer.TheInfectionRenderer;
+import com.isles.entity.TheInfectionEntity;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -96,7 +99,8 @@ public class blest {
     //----------------------------------SKY TIER----------------------------------
     private static final TagKey<Block> INCORRECT_FOR_SKY_TOOL =
             BlockTags.create(ResourceLocation.fromNamespaceAndPath("minecraft", "incorrect_for_iron_tool"));
-
+    private static final TagKey<Block> INCORRECT_FOR_Legendary_Tier =
+            BlockTags.create(ResourceLocation.fromNamespaceAndPath("minecraft","incorrect_for_netherite_tool"));
     public static final Tier SKY_TIER = TierSortingRegistry.registerTier(
             new ForgeTier(
                     2,          // harvest level (2 = iron)
@@ -111,6 +115,19 @@ public class blest {
             List.of(net.minecraft.world.item.Tiers.IRON),      // after iron
             List.of(net.minecraft.world.item.Tiers.DIAMOND)    // before diamond
     );
+    public static final  Tier Legendary_Tier = TierSortingRegistry.registerTier(
+            new ForgeTier(
+                    5,
+                    10000,
+                    10F,
+                    20F,
+                    100,
+                    INCORRECT_FOR_Legendary_Tier,
+                    () -> Ingredient.of(sky_catalyst.get())
+            ),
+            ResourceLocation.fromNamespaceAndPath(MODID,"lengendary_tier"),
+            List.of(Tiers.NETHERITE),List.of()
+            );
     public static final RegistryObject<Item> SKY_SWORD = ITEMS.register("sky_sword",
             () -> new SwordItem(SKY_TIER, 3, -2.4F, new Item.Properties()));
 
@@ -125,6 +142,8 @@ public class blest {
 
     public static final RegistryObject<Item> SKY_HOE = ITEMS.register("sky_hoe",
             () -> new HoeItem(SKY_TIER, -2, 0.0F, new Item.Properties()));
+    public static final RegistryObject<Item> Harpe = ITEMS.register("harpe",
+            ()-> new SwordItem(Legendary_Tier,5,-2F,new Item.Properties()));
     // Creates a creative tab with the id "theislesoftheblest:example_tab" for the example item, that is placed after the combat tab
     public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> sky_grass_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
         output.accept(sky_grass_ITEM.get());

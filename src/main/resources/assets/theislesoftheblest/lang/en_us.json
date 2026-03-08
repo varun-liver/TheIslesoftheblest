@@ -5,5 +5,11 @@
   "entity.theislesoftheblest.sky_guardian": "Sky Guardian",
   "block.theislesoftheblest.sky_crystal": "Sky Crystal",
   "item.theislesoftheblest.sky_catalyst": "Sky Catalyst",
-  "item.theislesoftheblest.unshaped_sky_catalyst": "Unshaped Sky Catalyst"
+  "item.theislesoftheblest.unshaped_sky_catalyst": "Unshaped Sky Catalyst",
+  "item.theislesoftheblest.sky_sword": "Sky Sword",
+  "item.theislesoftheblest.sky_axe": "Sky Axe",
+  "item.theislesoftheblest.sky_hoe": "Sky Hoe",
+  "item.theislesoftheblest.sky_pickaxe": "Sky Pickaxe",
+  "item.theislesoftheblest.sky_shovel": "Sky Shovel",
+  "item.theislesoftheblest.harpe": "Harpe"
 }
