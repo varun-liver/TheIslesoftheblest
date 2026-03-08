@@ -7,10 +7,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.item.*;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.block.Block;
@@ -36,6 +33,14 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraftforge.common.ForgeTier;
+import net.minecraftforge.common.TierSortingRegistry;
+
+import java.util.List;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(blest.MODID)
@@ -77,14 +82,49 @@ public class blest {
             "sky_catalyst",
             () -> new Item(new Item.Properties())
     );
-
+    public static final RegistryObject<Item> unshaped_sky_catalyst = ITEMS.register(
+            "unshaped_sky_catalyst",
+            () -> new Item(new Item.Properties())
+    );
     public static final RegistryObject<EntityType<SkyGuardianEntity>> sky_guardian = ENTITY_TYPES.register("sky_guardian",
             () -> EntityType.Builder.of(SkyGuardianEntity::new, MobCategory.MONSTER)
                     .sized(0.9F, 1.3F)
                     .build(MODID + ":sky_guardian"));
     public static final RegistryObject<Item> sky_guardian_spawn_egg = ITEMS.register("sky_guardian_spawn_egg",
             () -> new ForgeSpawnEggItem(sky_guardian, 0x9dd5ef, 0x1c5f87, new Item.Properties()));
+    //----------------------------------SKY TIER----------------------------------
+    //----------------------------------SKY TIER----------------------------------
+    private static final TagKey<Block> INCORRECT_FOR_SKY_TOOL =
+            BlockTags.create(ResourceLocation.fromNamespaceAndPath("minecraft", "incorrect_for_iron_tool"));
 
+    public static final Tier SKY_TIER = TierSortingRegistry.registerTier(
+            new ForgeTier(
+                    2,          // harvest level (2 = iron)
+                    750,        // durability
+                    8.0F,       // mining speed
+                    3.0F,       // attack damage bonus
+                    18,         // enchantability
+                    INCORRECT_FOR_SKY_TOOL,
+                    () -> Ingredient.of(sky_catalyst.get())
+            ),
+            ResourceLocation.fromNamespaceAndPath(MODID, "sky_tier"),
+            List.of(net.minecraft.world.item.Tiers.IRON),      // after iron
+            List.of(net.minecraft.world.item.Tiers.DIAMOND)    // before diamond
+    );
+    public static final RegistryObject<Item> SKY_SWORD = ITEMS.register("sky_sword",
+            () -> new SwordItem(SKY_TIER, 3, -2.4F, new Item.Properties()));
+
+    public static final RegistryObject<Item> SKY_PICKAXE = ITEMS.register("sky_pickaxe",
+            () -> new PickaxeItem(SKY_TIER, 1, -2.8F, new Item.Properties()));
+
+    public static final RegistryObject<Item> SKY_AXE = ITEMS.register("sky_axe",
+            () -> new AxeItem(SKY_TIER, 5.0F, -3.0F, new Item.Properties()));
+
+    public static final RegistryObject<Item> SKY_SHOVEL = ITEMS.register("sky_shovel",
+            () -> new ShovelItem(SKY_TIER, 1.5F, -3.0F, new Item.Properties()));
+
+    public static final RegistryObject<Item> SKY_HOE = ITEMS.register("sky_hoe",
+            () -> new HoeItem(SKY_TIER, -2, 0.0F, new Item.Properties()));
     // Creates a creative tab with the id "theislesoftheblest:example_tab" for the example item, that is placed after the combat tab
     public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> sky_grass_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
         output.accept(sky_grass_ITEM.get());
@@ -92,8 +132,13 @@ public class blest {
         output.accept(golden_cherry.get());
         output.accept(sky_guardian_spawn_egg.get());
         output.accept(sky_catalyst.get());
+        output.accept(unshaped_sky_catalyst.get());
+        output.accept(SKY_SWORD.get());
+        output.accept(SKY_PICKAXE.get());
+        output.accept(SKY_AXE.get());
+        output.accept(SKY_SHOVEL.get());
+        output.accept(SKY_HOE.get());
     }).build());
-
     public blest() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
@@ -137,6 +182,7 @@ public class blest {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) event.accept(sky_grass_ITEM);
         if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) event.accept(sky_crystal_ITEM.get());
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) event.accept(sky_catalyst.get());
+        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) event.accept(unshaped_sky_catalyst.get());
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) event.accept(sky_guardian_spawn_egg);
     }
 

@@ -28,7 +28,7 @@
             },
             {
               "type": "minecraft:item",
-              "name": "theislesoftheblest:sky_catalyst",
+              "name": "theislesoftheblest:unshaped_sky_catalyst",
               "functions": [
                 {
                   "function": "minecraft:apply_bonus",
