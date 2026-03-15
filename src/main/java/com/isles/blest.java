@@ -3,9 +3,7 @@ package com.isles;
 import com.isles.client.renderer.SkyGuardianRenderer;
 import com.isles.client.renderer.SkyGuardianModel;
 import com.isles.entity.SkyGuardianEntity;
-import com.isles.client.renderer.TheInfectionModel;
-import com.isles.client.renderer.TheInfectionRenderer;
-import com.isles.entity.TheInfectionEntity;
+import com.isles.entity.TheinfectionEntity;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -26,6 +24,7 @@ import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -41,10 +40,11 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.BiomeManager;
 import net.minecraftforge.common.ForgeTier;
 import net.minecraftforge.common.TierSortingRegistry;
+import terrablender.api.SurfaceRuleManager;
 
 import java.util.List;
 
@@ -96,14 +96,15 @@ public class blest {
             () -> EntityType.Builder.of(SkyGuardianEntity::new, MobCategory.MONSTER)
                     .sized(0.9F, 1.3F)
                     .build(MODID + ":sky_guardian"));
-    public static final RegistryObject<EntityType<TheInfectionEntity>> the_infection = ENTITY_TYPES.register("the_infection",
-            () -> EntityType.Builder.of(TheInfectionEntity::new, MobCategory.MONSTER)
-                    .sized(0.9F, 1.3F)
-                    .build(MODID + ":the_infection"));
     public static final RegistryObject<Item> sky_guardian_spawn_egg = ITEMS.register("sky_guardian_spawn_egg",
             () -> new ForgeSpawnEggItem(sky_guardian, 0x9dd5ef, 0x1c5f87, new Item.Properties()));
+    public static final RegistryObject<EntityType<TheinfectionEntity>> the_infection = ENTITY_TYPES.register("the_infection",
+            () -> EntityType.Builder.of(TheinfectionEntity::new, MobCategory.MONSTER)
+                    .sized(3F,3F)
+                    .build(MODID + ":the_infection")
+            );
     public static final RegistryObject<Item> the_infection_spawn_egg = ITEMS.register("the_infection_spawn_egg",
-            () -> new ForgeSpawnEggItem(the_infection, 0x4f5e3f, 0x101011, new Item.Properties()));
+            () -> new ForgeSpawnEggItem(the_infection, 0x9dd5ef, 0x1c5f87, new Item.Properties()));
     //----------------------------------SKY TIER----------------------------------
     //----------------------------------SKY TIER----------------------------------
     private static final TagKey<Block> INCORRECT_FOR_SKY_TOOL =
@@ -159,7 +160,6 @@ public class blest {
         output.accept(sky_crystal_ITEM.get());
         output.accept(golden_cherry.get());
         output.accept(sky_guardian_spawn_egg.get());
-        output.accept(the_infection_spawn_egg.get());
         output.accept(sky_catalyst.get());
         output.accept(unshaped_sky_catalyst.get());
         output.accept(SKY_SWORD.get());
@@ -206,11 +206,12 @@ public class blest {
         Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
 
         event.enqueueWork(() -> {
-            ResourceKey<Biome> skyForest = ResourceKey.create(
-                    Registries.BIOME,
-                    ResourceLocation.fromNamespaceAndPath(MODID, "sky_forest")
+            com.isles.worldgen.BlestTerrablender.registerRegions();
+            SurfaceRuleManager.addSurfaceRules(
+                    SurfaceRuleManager.RuleCategory.OVERWORLD,
+                    MODID,
+                    com.isles.worldgen.BlestSurfaceRules.makeRules()
             );
-            BiomeManager.addBiome(BiomeManager.BiomeType.COOL, new BiomeManager.BiomeEntry(skyForest, 8));
         });
     }
 
@@ -221,12 +222,11 @@ public class blest {
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) event.accept(sky_catalyst.get());
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) event.accept(unshaped_sky_catalyst.get());
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) event.accept(sky_guardian_spawn_egg);
-        if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) event.accept(the_infection_spawn_egg);
     }
 
     private void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(sky_guardian.get(), SkyGuardianEntity.createAttributes().build());
-        event.put(the_infection.get(), TheInfectionEntity.createAttributes().build());
+        event.put(the_infection.get(), TheinfectionEntity.createAttributes().build());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -245,18 +245,27 @@ public class blest {
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+            Minecraft mc = Minecraft.getInstance();
+            if (!ModList.get().isLoaded("amuletmod")) {
+                if (mc.player != null) {
+                    mc.player.displayClientMessage(
+                            Component.literal("Warning: Amulet system not installed! Some features may not work."),
+                            false
+                    );
+                }
+            }
         }
 
         @SubscribeEvent
         public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
             event.registerEntityRenderer(sky_guardian.get(), SkyGuardianRenderer::new);
-            event.registerEntityRenderer(the_infection.get(), TheInfectionRenderer::new);
+            event.registerEntityRenderer(the_infection.get(), com.isles.client.renderer.TheinfectionRenderer::new);
         }
 
         @SubscribeEvent
         public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
             event.registerLayerDefinition(SkyGuardianModel.LAYER_LOCATION, SkyGuardianModel::createBodyLayer);
-            event.registerLayerDefinition(TheInfectionModel.LAYER_LOCATION, TheInfectionModel::createBodyLayer);
+            event.registerLayerDefinition(com.isles.client.renderer.TheinfectionModel.LAYER_LOCATION, com.isles.client.renderer.TheinfectionModel::createBodyLayer);
         }
     }
 }

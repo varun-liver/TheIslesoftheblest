@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "theislesoftheblest:add_sky_crystal"
+    "theislesoftheblest:add_sky_crystal",
+    "theislesoftheblest:add_sky_forest_vegetation"
   ]
 }
