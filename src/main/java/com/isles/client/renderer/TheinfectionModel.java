@@ -1,7 +1,8 @@
-package com.isles.client.renderer;// Made with Blockbench 5.0.7
+// Made with Blockbench 5.0.7
 // Exported for Minecraft version 1.17 or later with Mojang mappings
 // Paste this class into your mod and generate all required imports
 
+package com.isles.client.renderer;
 
 import com.isles.blest;
 import com.isles.entity.TheinfectionEntity;
@@ -13,11 +14,10 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
-import com.isles.client.renderer.TheinfectionAnimations;
+
 public class TheinfectionModel extends HierarchicalModel<TheinfectionEntity> {
 	// This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
-	public static final ModelLayerLocation LAYER_LOCATION =
-			new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(blest.MODID, "theinfection"), "main");
+	public static final ModelLayerLocation LAYER_LOCATION =                         new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(blest.MODID, "theinfection"), "main");
 	private final ModelPart root;
 	private final ModelPart bone;
 	private final ModelPart leg2;
@@ -66,20 +66,20 @@ public class TheinfectionModel extends HierarchicalModel<TheinfectionEntity> {
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
-		PartDefinition bone = partdefinition.addOrReplaceChild("bone", CubeListBuilder.create(), PartPose.offset(-14.0F, 24.0F, 0.0F));
+		PartDefinition bone = partdefinition.addOrReplaceChild("bone", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 24.0F, 0.0F, 0.0F, 3.1416F, 0.0F));
 
-		PartDefinition leg2 = bone.addOrReplaceChild("leg2", CubeListBuilder.create(), PartPose.offset(2.0F, -25.0F, 0.0F));
+		PartDefinition leg2 = bone.addOrReplaceChild("leg2", CubeListBuilder.create(), PartPose.offset(-12.0F, -25.0F, 0.0F));
 
 		PartDefinition cube_r1 = leg2.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(0, 64).addBox(-5.0F, 3.0F, -6.0F, 10.0F, 21.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(4.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0873F));
 
-		PartDefinition leg1 = bone.addOrReplaceChild("leg1", CubeListBuilder.create(), PartPose.offset(30.0F, -26.0F, 0.0F));
+		PartDefinition leg1 = bone.addOrReplaceChild("leg1", CubeListBuilder.create(), PartPose.offset(16.0F, -26.0F, 0.0F));
 
 		PartDefinition cube_r2 = leg1.addOrReplaceChild("cube_r2", CubeListBuilder.create().texOffs(40, 64).addBox(-9.0F, -21.0F, -1.0F, 10.0F, 21.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-3.0F, 26.0F, -4.0F, 0.0F, 0.0F, -0.0873F));
 
 		PartDefinition body = bone.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(0.0F, -46.0F, -7.0F, 29.0F, 25.0F, 13.0F, new CubeDeformation(1.0F))
-		.texOffs(0, 95).addBox(7.0F, -43.0F, -10.0F, 14.0F, 19.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+		.texOffs(0, 95).addBox(7.0F, -43.0F, -10.0F, 14.0F, 19.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(-14.0F, 0.0F, 0.0F));
 
-		PartDefinition arm2 = bone.addOrReplaceChild("arm2", CubeListBuilder.create(), PartPose.offset(31.6667F, -42.5643F, 0.3717F));
+		PartDefinition arm2 = bone.addOrReplaceChild("arm2", CubeListBuilder.create(), PartPose.offset(17.6667F, -42.5643F, 0.3717F));
 
 		PartDefinition cube_r3 = arm2.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(80, 88).addBox(-1.0F, -2.0F, -7.0F, 10.0F, 20.0F, 9.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.6667F, -0.4357F, -0.3717F, 0.4363F, 0.0F, 0.0F));
 
@@ -99,7 +99,7 @@ public class TheinfectionModel extends HierarchicalModel<TheinfectionEntity> {
 
 		PartDefinition cube_r6 = armt3.addOrReplaceChild("cube_r6", CubeListBuilder.create().texOffs(50, 95).addBox(-1.0F, -2.0F, -1.0F, 2.0F, 1.0F, 7.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(2.0955F, -9.4308F, -0.5648F, -0.2537F, -0.0368F, -0.4349F));
 
-		PartDefinition arm1 = bone.addOrReplaceChild("arm1", CubeListBuilder.create(), PartPose.offset(-5.0F, -41.3543F, 1.8004F));
+		PartDefinition arm1 = bone.addOrReplaceChild("arm1", CubeListBuilder.create(), PartPose.offset(-19.0F, -41.3543F, 1.8004F));
 
 		PartDefinition cube_r7 = arm1.addOrReplaceChild("cube_r7", CubeListBuilder.create().texOffs(84, 0).addBox(-1.0F, -2.0F, -7.0F, 10.0F, 20.0F, 9.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-5.0F, -1.6535F, -2.5576F, 0.4363F, 0.0F, 0.0F));
 
@@ -119,7 +119,7 @@ public class TheinfectionModel extends HierarchicalModel<TheinfectionEntity> {
 
 		PartDefinition cube_r10 = armt4.addOrReplaceChild("cube_r10", CubeListBuilder.create().texOffs(102, 29).addBox(-3.0F, -2.0F, -1.0F, 2.0F, 1.0F, 7.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(117.0F, -29.0F, 20.0F, 0.3927F, 0.0F, 0.0F));
 
-		PartDefinition head = bone.addOrReplaceChild("head", CubeListBuilder.create().texOffs(80, 64).addBox(-6.0F, -9.0F, 7.0F, 12.0F, 14.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(15.0F, -45.0F, 0.0F));
+		PartDefinition head = bone.addOrReplaceChild("head", CubeListBuilder.create().texOffs(80, 64).addBox(-6.0F, -9.0F, 7.0F, 12.0F, 14.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(1.0F, -45.0F, 0.0F));
 
 		PartDefinition horn1 = head.addOrReplaceChild("horn1", CubeListBuilder.create().texOffs(68, 95).addBox(-13.0F, -8.0F, 13.0F, 2.0F, 8.0F, 2.0F, new CubeDeformation(1.0F))
 		.texOffs(32, 111).addBox(-9.0F, -3.0F, 13.0F, 2.0F, 3.0F, 2.0F, new CubeDeformation(1.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
@@ -141,13 +141,13 @@ public class TheinfectionModel extends HierarchicalModel<TheinfectionEntity> {
 		this.animate(entity.attack3AnimationState, TheinfectionAnimations.summon, ageInTicks, 1.0F);
 	}
 
-
 	@Override
-	public ModelPart root() {
+	public ModelPart root(){
 		return this.root;
 	}
 	@Override
 	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
 		bone.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
 	}
+
 }
