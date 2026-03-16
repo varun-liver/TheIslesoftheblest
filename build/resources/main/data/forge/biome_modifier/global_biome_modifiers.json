@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "theislesoftheblest:add_sky_crystal",
-    "theislesoftheblest:add_sky_forest_vegetation"
+    "theislesoftheblest:add_sky_forest_vegetation",
+    "theislesoftheblest:replace_sky_realm_biomes"
   ]
 }

@@ -1,0 +1,24 @@
+{
+  "type": "theislesoftheblest:sky_realm",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "theislesoftheblest:sky_forest",
+          "parameters": {
+            "temperature": 0.6,
+            "humidity": 0.7,
+            "continentalness": 0.0,
+            "erosion": 0.0,
+            "depth": 0.0,
+            "weirdness": 0.0,
+            "offset": 0.0
+          }
+        }
+      ]
+    },
+    "settings": "minecraft:overworld"
+  }
+}
