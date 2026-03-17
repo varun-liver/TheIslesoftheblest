@@ -9,6 +9,8 @@ import net.minecraft.world.level.biome.Biome;
 public final class ModBiomes {
     public static final ResourceKey<Biome> SKY_FOREST =
             ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(blest.MODID, "sky_forest"));
+    public static final ResourceKey<Biome> LARGE_SKY_FOREST =
+            ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(blest.MODID, "large_sky_forest"));
 
     private ModBiomes() {
     }

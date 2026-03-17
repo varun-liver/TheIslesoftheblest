@@ -12,6 +12,9 @@
   "item.theislesoftheblest.sky_pickaxe": "Sky Pickaxe",
   "item.theislesoftheblest.sky_shovel": "Sky Shovel",
   "item.theislesoftheblest.harpe": "Harpe",
+  "item.theislesoftheblest.cloud_igniter": "Cloud Igniter",
   "biome.theislesoftheblest.sky_forest": "Sky Forest",
-  "entity.theislesoftheblest.theinfection": "The Infection"
+  "biome.theislesoftheblest.large_sky_forest": "Large Sky Forest",
+  "entity.theislesoftheblest.theinfection": "The Infection",
+  "block.theislesoftheblest.cloud": "Cloud"
 }

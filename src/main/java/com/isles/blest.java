@@ -45,6 +45,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.ForgeTier;
 import net.minecraftforge.common.TierSortingRegistry;
 import terrablender.api.SurfaceRuleManager;
+import com.isles.portal.CloudPortalBlock;
+import com.isles.portal.CloudPortalIgniterItem;
 
 import java.util.List;
 
@@ -80,6 +82,17 @@ public class blest {
                     .mapColor(MapColor.STONE)
                     .requiresCorrectToolForDrops()));
     public static final RegistryObject<Item> sky_crystal_ITEM = ITEMS.register("sky_crystal", () -> new BlockItem(sky_crystal.get(), new Item.Properties()));
+    public static final RegistryObject<Block> cloud = BLOCKS.register("cloud", () -> new Block(
+            BlockBehaviour.Properties.of()
+            .strength(-1.0F, 3600000.0F)
+    ));
+    public static final RegistryObject<Item> cloud_ITEM = ITEMS.register("cloud", () -> new BlockItem(cloud.get(), new Item.Properties()));
+    public static final RegistryObject<Block> cloud_portal = BLOCKS.register("cloud_portal", () -> new CloudPortalBlock(
+            BlockBehaviour.Properties.of()
+                    .noCollission()
+                    .strength(-1.0F, 3600000.0F)
+                    .lightLevel(state -> 11)
+    ));
     //----------------------------------ITEM REG----------------------------------
     //----------------------------------ITEM REG----------------------------------
     // Creates a new food item with the id "theislesoftheblest:example_id", nutrition 1 and saturation 2
@@ -91,6 +104,10 @@ public class blest {
     public static final RegistryObject<Item> unshaped_sky_catalyst = ITEMS.register(
             "unshaped_sky_catalyst",
             () -> new Item(new Item.Properties())
+    );
+    public static final RegistryObject<Item> cloud_igniter = ITEMS.register(
+            "cloud_igniter",
+            () -> new CloudPortalIgniterItem(new Item.Properties().durability(64))
     );
     public static final RegistryObject<EntityType<SkyGuardianEntity>> sky_guardian = ENTITY_TYPES.register("sky_guardian",
             () -> EntityType.Builder.of(SkyGuardianEntity::new, MobCategory.MONSTER)
@@ -158,15 +175,18 @@ public class blest {
     public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> sky_grass_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
         output.accept(sky_grass_ITEM.get());
         output.accept(sky_crystal_ITEM.get());
+        output.accept(cloud_ITEM.get());
         output.accept(golden_cherry.get());
         output.accept(sky_guardian_spawn_egg.get());
         output.accept(sky_catalyst.get());
         output.accept(unshaped_sky_catalyst.get());
+        output.accept(cloud_igniter.get());
         output.accept(SKY_SWORD.get());
         output.accept(SKY_PICKAXE.get());
         output.accept(SKY_AXE.get());
         output.accept(SKY_SHOVEL.get());
         output.accept(SKY_HOE.get());
+        output.accept(Harpe.get());
     }).build());
     public blest() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -245,15 +265,15 @@ public class blest {
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-            Minecraft mc = Minecraft.getInstance();
-            if (!ModList.get().isLoaded("amuletmod")) {
-                if (mc.player != null) {
-                    mc.player.displayClientMessage(
-                            Component.literal("Warning: Amulet system not installed! Some features may not work."),
-                            false
-                    );
-                }
-            }
+//            Minecraft mc = Minecraft.getInstance();
+//            if (!ModList.get().isLoaded("amuletmod")) {
+//                if (mc.player != null) {
+//                    mc.player.displayClientMessage(
+//                            Component.literal("Warning: Amulet system not installed! Some features may not work."),
+//                            false
+//                    );
+//                }
+//            }
         }
 
         @SubscribeEvent

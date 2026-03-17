@@ -14,7 +14,7 @@ public final class BlestSurfaceRules {
 
         return SurfaceRules.sequence(
                 SurfaceRules.ifTrue(
-                        SurfaceRules.isBiome(ModBiomes.SKY_FOREST),
+                        SurfaceRules.isBiome(ModBiomes.SKY_FOREST, ModBiomes.LARGE_SKY_FOREST),
                         SurfaceRules.sequence(
                                 SurfaceRules.ifTrue(SurfaceRules.ON_FLOOR, skyGrass),
                                 SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, dirt)

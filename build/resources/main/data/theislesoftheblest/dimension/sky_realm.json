@@ -6,7 +6,7 @@
       "type": "minecraft:multi_noise",
       "biomes": [
         {
-          "biome": "theislesoftheblest:sky_forest",
+          "biome": "theislesoftheblest:large_sky_forest",
           "parameters": {
             "temperature": 0.6,
             "humidity": 0.7,

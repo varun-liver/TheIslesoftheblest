@@ -30,5 +30,16 @@ public class SkyForestRegion extends Region {
                 0.0F,
                 ModBiomes.SKY_FOREST
         );
+        this.addBiome(
+                mapper,
+                Climate.Parameter.span(-0.5F, 0.9F),
+                Climate.Parameter.span(-0.3F, 0.9F),
+                Climate.Parameter.span(-1.0F, 1.0F),
+                Climate.Parameter.span(-1.0F, 1.0F),
+                Climate.Parameter.span(-1.0F, 1.0F),
+                Climate.Parameter.span(0.0F, 1.0F),
+                0.0F,
+                ModBiomes.LARGE_SKY_FOREST
+        );
     }
 }
