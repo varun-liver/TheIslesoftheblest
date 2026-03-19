@@ -2,11 +2,16 @@ package com.isles;
 
 import com.isles.client.renderer.SkyGuardianRenderer;
 import com.isles.client.renderer.SkyGuardianModel;
+import com.isles.client.renderer.ThewhispererModel;
+import com.isles.client.renderer.ThewhispererRenderer;
 import com.isles.entity.SkyGuardianEntity;
 import com.isles.entity.TheinfectionEntity;
+import com.isles.entity.ThewhispererEntity;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
 import net.minecraft.world.entity.EntityType;
@@ -41,6 +46,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.network.chat.Component;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.ForgeTier;
 import net.minecraftforge.common.TierSortingRegistry;
@@ -49,6 +56,8 @@ import com.isles.portal.CloudPortalBlock;
 import com.isles.portal.CloudPortalIgniterItem;
 
 import java.util.List;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraft.world.entity.player.Player;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(blest.MODID)
@@ -122,6 +131,13 @@ public class blest {
             );
     public static final RegistryObject<Item> the_infection_spawn_egg = ITEMS.register("the_infection_spawn_egg",
             () -> new ForgeSpawnEggItem(the_infection, 0x9dd5ef, 0x1c5f87, new Item.Properties()));
+    public static final RegistryObject<EntityType<ThewhispererEntity>> the_whisperer = ENTITY_TYPES.register("the_whisperer",
+            () -> EntityType.Builder.of(ThewhispererEntity::new, MobCategory.CREATURE)
+                    .sized(1f,1f)
+                    .build(MODID + ":the_whisperer")
+    );
+    public static final RegistryObject<Item> the_whisperer_spawn_egg = ITEMS.register("the_whisperer_spawn_egg",
+            () -> new ForgeSpawnEggItem(the_whisperer, 0x9dffef, 0x1cff87, new Item.Properties()));
     //----------------------------------SKY TIER----------------------------------
     //----------------------------------SKY TIER----------------------------------
     private static final TagKey<Block> INCORRECT_FOR_SKY_TOOL =
@@ -247,6 +263,7 @@ public class blest {
     private void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(sky_guardian.get(), SkyGuardianEntity.createAttributes().build());
         event.put(the_infection.get(), TheinfectionEntity.createAttributes().build());
+        event.put(the_whisperer.get(), ThewhispererEntity.createAttributes().build());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -254,6 +271,45 @@ public class blest {
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+
+    @SubscribeEvent
+    public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        ServerLevel level = player.serverLevel();
+        CompoundTag data = player.getPersistentData();
+        CompoundTag persisted = data.getCompound(Player.PERSISTED_NBT_TAG);
+        String key = MODID + ":first_joined";
+        if (!persisted.getBoolean(key)) {
+            persisted.putBoolean(key, true);
+            data.put(Player.PERSISTED_NBT_TAG, persisted);
+            player.sendSystemMessage(Component.literal("Welcome to The Isles of the Blest!"));
+            ThewhispererEntity e = blest.the_whisperer.get().create(level);
+            if (e != null) {
+                double angle = player.getRandom().nextDouble() * Math.PI * 2.0;
+                double distance = 8.0;
+                double dx = Math.cos(angle) * distance;
+                double dz = Math.sin(angle) * distance;
+                BlockPos base = BlockPos.containing(player.position().add(dx, 0.0, dz));
+                BlockPos safe = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, base);
+                e.moveTo(safe.getX() + 0.5, safe.getY(), safe.getZ() + 0.5);
+                e.setFollowTarget(player);
+                level.addFreshEntity(e);
+                e.setPersistenceRequired();
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerClone(PlayerEvent.Clone event) {
+        if (!event.isWasDeath()) {
+            return;
+        }
+        CompoundTag original = event.getOriginal().getPersistentData();
+        CompoundTag originalPersisted = original.getCompound(Player.PERSISTED_NBT_TAG);
+        event.getEntity().getPersistentData().put(Player.PERSISTED_NBT_TAG, originalPersisted.copy());
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
@@ -280,12 +336,14 @@ public class blest {
         public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
             event.registerEntityRenderer(sky_guardian.get(), SkyGuardianRenderer::new);
             event.registerEntityRenderer(the_infection.get(), com.isles.client.renderer.TheinfectionRenderer::new);
+            event.registerEntityRenderer(the_whisperer.get(), ThewhispererRenderer::new);
         }
 
         @SubscribeEvent
         public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
             event.registerLayerDefinition(SkyGuardianModel.LAYER_LOCATION, SkyGuardianModel::createBodyLayer);
             event.registerLayerDefinition(com.isles.client.renderer.TheinfectionModel.LAYER_LOCATION, com.isles.client.renderer.TheinfectionModel::createBodyLayer);
+            event.registerLayerDefinition(ThewhispererModel.LAYER_LOCATION, ThewhispererModel::createBodyLayer);
         }
     }
 }

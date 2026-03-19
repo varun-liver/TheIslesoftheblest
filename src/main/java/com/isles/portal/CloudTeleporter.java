@@ -23,7 +23,12 @@ public class CloudTeleporter implements ITeleporter {
     @Override
     public PortalInfo getPortalInfo(Entity entity, ServerLevel destination,
                                     Function<ServerLevel, PortalInfo> defaultPortalInfo) {
-        return new PortalInfo(entity.position(), entity.getDeltaMovement(),
+        PortalInfo info = defaultPortalInfo.apply(destination);
+        if (info != null) {
+            // Nudge the spawn out of the portal block to avoid instant re-teleport.
+            return new PortalInfo(info.pos.add(1.0, 0.0, 1.0), info.speed, info.yRot, info.xRot);
+        }
+        return new PortalInfo(entity.position().add(1.0, 0.0, 1.0), entity.getDeltaMovement(),
                 entity.getYRot(), entity.getXRot());
     }
 }
