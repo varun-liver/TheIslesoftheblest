@@ -18,6 +18,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
@@ -73,6 +74,8 @@ public class blest {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     // Create a Deferred Register to hold EntityTypes which will all be registered under the "theislesoftheblest" namespace
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
+    // Create a Deferred Register to hold BlockEntityTypes
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "theislesoftheblest" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     //----------------------------------BLOCK/ITEM REG----------------------------------
@@ -102,6 +105,13 @@ public class blest {
                     .strength(-1.0F, 3600000.0F)
                     .lightLevel(state -> 11)
     ));
+    public static final RegistryObject<Block> summoner = BLOCKS.register("summoner", () -> new SummonerBlock(
+            BlockBehaviour.Properties.of()
+                    .strength(3.0F)
+                    .mapColor(MapColor.STONE)
+                    .requiresCorrectToolForDrops()
+    ));
+    public static final RegistryObject<Item> summoner_ITEM = ITEMS.register("summoner", () -> new BlockItem(summoner.get(), new Item.Properties()));
     //----------------------------------ITEM REG----------------------------------
     //----------------------------------ITEM REG----------------------------------
     // Creates a new food item with the id "theislesoftheblest:example_id", nutrition 1 and saturation 2
@@ -138,6 +148,8 @@ public class blest {
     );
     public static final RegistryObject<Item> the_whisperer_spawn_egg = ITEMS.register("the_whisperer_spawn_egg",
             () -> new ForgeSpawnEggItem(the_whisperer, 0x9dffef, 0x1cff87, new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<SummonerBlockEntity>> SUMMONER_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("summoner", () -> BlockEntityType.Builder.of(SummonerBlockEntity::new, summoner.get()).build(null));
     //----------------------------------SKY TIER----------------------------------
     //----------------------------------SKY TIER----------------------------------
     private static final TagKey<Block> INCORRECT_FOR_SKY_TOOL =
@@ -197,6 +209,7 @@ public class blest {
         output.accept(sky_catalyst.get());
         output.accept(unshaped_sky_catalyst.get());
         output.accept(cloud_igniter.get());
+        output.accept(summoner_ITEM.get());
         output.accept(SKY_SWORD.get());
         output.accept(SKY_PICKAXE.get());
         output.accept(SKY_AXE.get());
@@ -216,6 +229,8 @@ public class blest {
         ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so entities get registered
         ENTITY_TYPES.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so block entities get registered
+        BLOCK_ENTITIES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
 
@@ -258,6 +273,7 @@ public class blest {
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) event.accept(sky_catalyst.get());
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) event.accept(unshaped_sky_catalyst.get());
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) event.accept(sky_guardian_spawn_egg);
+        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) event.accept(summoner_ITEM.get());
     }
 
     private void registerAttributes(EntityAttributeCreationEvent event) {
