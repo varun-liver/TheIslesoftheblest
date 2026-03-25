@@ -2,9 +2,15 @@ package com.isles;
 
 import com.isles.client.renderer.SkyGuardianRenderer;
 import com.isles.client.renderer.SkyGuardianModel;
+import com.isles.client.renderer.TheGuardianRenderer;
+import com.isles.client.renderer.TheGuardianModel;
+import com.isles.client.renderer.TheCursedOnesRenderer;
+import com.isles.client.renderer.TheCursedOnesModel;
 import com.isles.client.renderer.ThewhispererModel;
 import com.isles.client.renderer.ThewhispererRenderer;
 import com.isles.entity.SkyGuardianEntity;
+import com.isles.entity.TheGuardianEntity;
+import com.isles.entity.TheCursedOnesEntity;
 import com.isles.entity.TheinfectionEntity;
 import com.isles.entity.ThewhispererEntity;
 import com.mojang.logging.LogUtils;
@@ -18,6 +24,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -40,12 +47,14 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.common.util.ForgeSoundType;
 import org.slf4j.Logger;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -76,6 +85,8 @@ public class blest {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
     // Create a Deferred Register to hold BlockEntityTypes
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
+    // Create a Deferred Register to hold SoundEvents
+    public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "theislesoftheblest" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     //----------------------------------BLOCK/ITEM REG----------------------------------
@@ -85,6 +96,7 @@ public class blest {
             BlockBehaviour.Properties.of()
                     .strength(0.8f,1.0f)
                     .mapColor(MapColor.STONE)
+                    .sound(SoundType.GRASS)
                     .requiresCorrectToolForDrops()));
     // Creates a new BlockItem with the id "theislesoftheblest:sky_grass", combining the namespace and path
     public static final RegistryObject<Item> sky_grass_ITEM = ITEMS.register("sky_grass", () -> new BlockItem(sky_grass.get(), new Item.Properties()));
@@ -94,11 +106,6 @@ public class blest {
                     .mapColor(MapColor.STONE)
                     .requiresCorrectToolForDrops()));
     public static final RegistryObject<Item> sky_crystal_ITEM = ITEMS.register("sky_crystal", () -> new BlockItem(sky_crystal.get(), new Item.Properties()));
-    public static final RegistryObject<Block> cloud = BLOCKS.register("cloud", () -> new Block(
-            BlockBehaviour.Properties.of()
-            .strength(-1.0F, 3600000.0F)
-    ));
-    public static final RegistryObject<Item> cloud_ITEM = ITEMS.register("cloud", () -> new BlockItem(cloud.get(), new Item.Properties()));
     public static final RegistryObject<Block> cloud_portal = BLOCKS.register("cloud_portal", () -> new CloudPortalBlock(
             BlockBehaviour.Properties.of()
                     .noCollission()
@@ -146,8 +153,100 @@ public class blest {
                     .sized(1f,1f)
                     .build(MODID + ":the_whisperer")
     );
+    public static final RegistryObject<EntityType<TheGuardianEntity>> the_guardian = ENTITY_TYPES.register("the_guardian",
+            () -> EntityType.Builder.of(TheGuardianEntity::new, MobCategory.MONSTER)
+                .sized(1f,2f)
+                .build(MODID + ":the_guardian"));
+    public static final RegistryObject<Item> the_guardian_spawn_egg = ITEMS.register("the_guardian_spawn_egg",
+            () -> new ForgeSpawnEggItem(the_guardian, 0x9dd5ef, 0x1c5f87, new Item.Properties()));
+    public static final RegistryObject<EntityType<TheCursedOnesEntity>> the_cursed_ones = ENTITY_TYPES.register("the_cursed_ones",
+            () -> EntityType.Builder.of(TheCursedOnesEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.8F)
+                    .build(MODID + ":the_cursed_ones"));
+    public static final RegistryObject<Item> the_cursed_ones_spawn_egg = ITEMS.register("the_cursed_ones_spawn_egg",
+            () -> new ForgeSpawnEggItem(the_cursed_ones, 0x3b3b3b, 0x7d2b2b, new Item.Properties()));
     public static final RegistryObject<Item> the_whisperer_spawn_egg = ITEMS.register("the_whisperer_spawn_egg",
             () -> new ForgeSpawnEggItem(the_whisperer, 0x9dffef, 0x1cff87, new Item.Properties()));
+
+    //----------------------------------SOUND REG----------------------------------
+    //----------------------------------SOUND REG----------------------------------
+    public static final RegistryObject<SoundEvent> THE_INFECTION_AMBIENT = SOUND_EVENTS.register(
+            "entity.the_infection.ambient",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_infection.ambient"))
+    );
+    public static final RegistryObject<SoundEvent> THE_INFECTION_HURT = SOUND_EVENTS.register(
+            "entity.the_infection.hurt",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_infection.hurt"))
+    );
+    public static final RegistryObject<SoundEvent> THE_INFECTION_DEATH = SOUND_EVENTS.register(
+            "entity.the_infection.death",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_infection.death"))
+    );
+    public static final RegistryObject<SoundEvent> THE_GUARDIAN_DEATH = SOUND_EVENTS.register(
+            "entity.the_guardian.death",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_guardian.death"))
+    );
+    public static final RegistryObject<SoundEvent> THE_GUARDIAN_HURT = SOUND_EVENTS.register(
+            "entity.the_guardian.hurt",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_guardian.hurt"))
+    );
+    public static final RegistryObject<SoundEvent> THE_GUARDIAN_AMBIENT = SOUND_EVENTS.register(
+            "entity.the_guardian.ambient",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_guardian.ambient"))
+    );
+    public static final RegistryObject<SoundEvent> THE_GUARDIAN_WHOOSH = SOUND_EVENTS.register(
+            "entity.the_guardian.whoosh",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_guardian.whoosh"))
+    );
+    public static final RegistryObject<SoundEvent> THE_CURSED_ONES_AMBIENT = SOUND_EVENTS.register(
+            "entity.the_cursed_ones.ambient",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_cursed_ones.ambient"))
+    );
+    public static final RegistryObject<SoundEvent> THE_CURSED_ONES_HURT = SOUND_EVENTS.register(
+            "entity.the_cursed_ones.hurt",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_cursed_ones.hurt"))
+    );
+    public static final RegistryObject<SoundEvent> THE_CURSED_ONES_DEATH = SOUND_EVENTS.register(
+            "entity.the_cursed_ones.death",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_cursed_ones.death"))
+    );
+
+    public static final RegistryObject<SoundEvent> CLOUD_BREAK = SOUND_EVENTS.register(
+            "block.cloud.break",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.cloud.break"))
+    );
+    public static final RegistryObject<SoundEvent> CLOUD_STEP = SOUND_EVENTS.register(
+            "block.cloud.step",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.cloud.step"))
+    );
+    public static final RegistryObject<SoundEvent> CLOUD_PLACE = SOUND_EVENTS.register(
+            "block.cloud.place",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.cloud.place"))
+    );
+    public static final RegistryObject<SoundEvent> CLOUD_HIT = SOUND_EVENTS.register(
+            "block.cloud.hit",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.cloud.hit"))
+    );
+    public static final RegistryObject<SoundEvent> CLOUD_FALL = SOUND_EVENTS.register(
+            "block.cloud.fall",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.cloud.fall"))
+    );
+    public static final SoundType CLOUD_SOUNDS = new ForgeSoundType(
+            1.0F,
+            1.0F,
+            CLOUD_BREAK::get,
+            CLOUD_STEP::get,
+            CLOUD_PLACE::get,
+            CLOUD_HIT::get,
+            CLOUD_FALL::get
+    );
+
+    public static final RegistryObject<Block> cloud = BLOCKS.register("cloud", () -> new Block(
+            BlockBehaviour.Properties.of()
+            .strength(-1.0F, 3600000.0F)
+            .sound(CLOUD_SOUNDS)
+    ));
+    public static final RegistryObject<Item> cloud_ITEM = ITEMS.register("cloud", () -> new BlockItem(cloud.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<SummonerBlockEntity>> SUMMONER_BLOCK_ENTITY =
             BLOCK_ENTITIES.register("summoner", () -> BlockEntityType.Builder.of(SummonerBlockEntity::new, summoner.get()).build(null));
     //----------------------------------SKY TIER----------------------------------
@@ -199,6 +298,22 @@ public class blest {
             () -> new HoeItem(SKY_TIER, -2, 0.0F, new Item.Properties()));
     public static final RegistryObject<Item> Harpe = ITEMS.register("harpe",
             ()-> new SwordItem(Legendary_Tier,80,-2F,new Item.Properties()));
+    public static final RegistryObject<Item> SKY_CATALYST_HELMET = ITEMS.register(
+            "sky_catalyst_helmet",
+            () -> new ArmorItem(ModArmorMaterials.SKY_CATALYST, ArmorItem.Type.HELMET, new Item.Properties())
+    );
+    public static final RegistryObject<Item> SKY_CATALYST_CHESTPLATE = ITEMS.register(
+            "sky_catalyst_chestplate",
+            () -> new ArmorItem(ModArmorMaterials.SKY_CATALYST, ArmorItem.Type.CHESTPLATE, new Item.Properties())
+    );
+    public static final RegistryObject<Item> SKY_CATALYST_LEGGINGS = ITEMS.register(
+            "sky_catalyst_leggings",
+            () -> new ArmorItem(ModArmorMaterials.SKY_CATALYST, ArmorItem.Type.LEGGINGS, new Item.Properties())
+    );
+    public static final RegistryObject<Item> SKY_CATALYST_BOOTS = ITEMS.register(
+            "sky_catalyst_boots",
+            () -> new ArmorItem(ModArmorMaterials.SKY_CATALYST, ArmorItem.Type.BOOTS, new Item.Properties())
+    );
     // Creates a creative tab with the id "theislesoftheblest:example_tab" for the example item, that is placed after the combat tab
     public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> sky_grass_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
         output.accept(sky_grass_ITEM.get());
@@ -216,6 +331,12 @@ public class blest {
         output.accept(SKY_SHOVEL.get());
         output.accept(SKY_HOE.get());
         output.accept(Harpe.get());
+        output.accept(SKY_CATALYST_HELMET.get());
+        output.accept(SKY_CATALYST_CHESTPLATE.get());
+        output.accept(SKY_CATALYST_LEGGINGS.get());
+        output.accept(SKY_CATALYST_BOOTS.get());
+        output.accept(the_guardian_spawn_egg.get());
+        output.accept(the_cursed_ones_spawn_egg.get());
     }).build());
     public blest() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -231,6 +352,8 @@ public class blest {
         ENTITY_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so block entities get registered
         BLOCK_ENTITIES.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so sounds get registered
+        SOUND_EVENTS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
 
@@ -280,6 +403,8 @@ public class blest {
         event.put(sky_guardian.get(), SkyGuardianEntity.createAttributes().build());
         event.put(the_infection.get(), TheinfectionEntity.createAttributes().build());
         event.put(the_whisperer.get(), ThewhispererEntity.createAttributes().build());
+        event.put(the_guardian.get(), TheGuardianEntity.createAttributes().build());
+        event.put(the_cursed_ones.get(), TheCursedOnesEntity.createAttributes().build());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -353,6 +478,8 @@ public class blest {
             event.registerEntityRenderer(sky_guardian.get(), SkyGuardianRenderer::new);
             event.registerEntityRenderer(the_infection.get(), com.isles.client.renderer.TheinfectionRenderer::new);
             event.registerEntityRenderer(the_whisperer.get(), ThewhispererRenderer::new);
+            event.registerEntityRenderer(the_guardian.get(), TheGuardianRenderer::new);
+            event.registerEntityRenderer(the_cursed_ones.get(), TheCursedOnesRenderer::new);
         }
 
         @SubscribeEvent
@@ -360,6 +487,8 @@ public class blest {
             event.registerLayerDefinition(SkyGuardianModel.LAYER_LOCATION, SkyGuardianModel::createBodyLayer);
             event.registerLayerDefinition(com.isles.client.renderer.TheinfectionModel.LAYER_LOCATION, com.isles.client.renderer.TheinfectionModel::createBodyLayer);
             event.registerLayerDefinition(ThewhispererModel.LAYER_LOCATION, ThewhispererModel::createBodyLayer);
+            event.registerLayerDefinition(TheGuardianModel.LAYER_LOCATION, TheGuardianModel::createBodyLayer);
+            event.registerLayerDefinition(TheCursedOnesModel.LAYER_LOCATION, TheCursedOnesModel::createBodyLayer);
         }
     }
 }

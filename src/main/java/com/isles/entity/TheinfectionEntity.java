@@ -18,6 +18,8 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.AnimationState;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.damagesource.DamageSource;
 
 public class TheinfectionEntity extends Monster {
     private static final float SMASH_DAMAGE = 5.0F;
@@ -171,5 +173,20 @@ public class TheinfectionEntity extends Monster {
                 this.theinfection.startCustomAttack(attackType);
             }
         }
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return blest.THE_INFECTION_AMBIENT.get();
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource source) {
+        return blest.THE_INFECTION_HURT.get();
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return blest.THE_INFECTION_DEATH.get();
     }
 }

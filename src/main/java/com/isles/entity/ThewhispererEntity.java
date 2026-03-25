@@ -140,4 +140,5 @@ public class ThewhispererEntity extends Animal {
             return canUse();
         }
     }
+
 }

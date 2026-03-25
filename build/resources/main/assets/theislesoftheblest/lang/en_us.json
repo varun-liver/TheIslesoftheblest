@@ -13,8 +13,14 @@
   "item.theislesoftheblest.sky_shovel": "Sky Shovel",
   "item.theislesoftheblest.harpe": "Harpe",
   "item.theislesoftheblest.cloud_igniter": "Cloud Igniter",
+  "item.theislesoftheblest.sky_catalyst_helmet": "Sky Catalyst Helmet",
+  "item.theislesoftheblest.sky_catalyst_chestplate": "Sky Catalyst Chestplate",
+  "item.theislesoftheblest.sky_catalyst_leggings": "Sky Catalyst Leggings",
+  "item.theislesoftheblest.sky_catalyst_boots": "Sky Catalyst Boots",
+  "item.theislesoftheblest.the_cursed_ones_spawn_egg": "The Cursed Ones Spawn Egg",
   "biome.theislesoftheblest.sky_forest": "Sky Forest",
   "biome.theislesoftheblest.large_sky_forest": "Large Sky Forest",
   "entity.theislesoftheblest.theinfection": "The Infection",
+  "entity.theislesoftheblest.the_cursed_ones": "The Cursed Ones",
   "block.theislesoftheblest.cloud": "Cloud"
 }

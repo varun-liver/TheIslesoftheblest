@@ -2,6 +2,9 @@ package com.isles.entity;
 
 import com.isles.blest;
 import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EntityType;
@@ -143,7 +146,22 @@ public class TheGuardianEntity extends Monster {
     }
 
     protected void onSpinStart() {
-        // Placeholder for spin-specific effects (particles, sounds, etc.).
+        this.level().playSound(null,this.blockPosition(),blest.THE_GUARDIAN_WHOOSH.get(), SoundSource.HOSTILE,1.0F,1.0F);
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return blest.THE_GUARDIAN_AMBIENT.get();
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource source) {
+        return blest.THE_GUARDIAN_HURT.get();
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return blest.THE_GUARDIAN_DEATH.get();
     }
 
 

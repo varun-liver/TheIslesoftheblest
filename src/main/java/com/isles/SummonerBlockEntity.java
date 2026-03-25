@@ -47,8 +47,10 @@ public class SummonerBlockEntity extends BlockEntity {
                             entity = blest.the_infection.get().create(level);
                             break;
                         case 1:
-                            entity = blest.sky_guardian.get().create(level);
+                            entity = blest.the_guardian.get().create(level);
                             break;
+                        case 2:
+                            entity = blest.the_cursed_ones.get().create(level);
                         default:
                             break;
                     }
