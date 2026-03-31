@@ -64,6 +64,7 @@ import net.minecraftforge.common.TierSortingRegistry;
 import terrablender.api.SurfaceRuleManager;
 import com.isles.portal.CloudPortalBlock;
 import com.isles.portal.CloudPortalIgniterItem;
+import com.isles.block.InfectionGrassBlock;
 
 import java.util.List;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -231,6 +232,26 @@ public class blest {
             "block.cloud.fall",
             () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.cloud.fall"))
     );
+    public static final RegistryObject<SoundEvent> Infection_BREAK = SOUND_EVENTS.register(
+            "block.infection.break",
+            ()-> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.infection.break"))
+    );
+    public static final RegistryObject<SoundEvent> Infection_STEP = SOUND_EVENTS.register(
+            "block.infection.step",
+            ()-> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.infection.break"))
+    );
+    public static final RegistryObject<SoundEvent> Infection_PLACE = SOUND_EVENTS.register(
+            "block.infection.place",
+            ()-> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.infection.break"))
+    );
+    public static final RegistryObject<SoundEvent> Infection_HIT = SOUND_EVENTS.register(
+            "block.infection.hit",
+            ()-> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.infection.break"))
+    );
+    public static final RegistryObject<SoundEvent> Infection_FALL = SOUND_EVENTS.register(
+            "block.infection.fall",
+            ()-> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.infection.break"))
+    );
     public static final SoundType CLOUD_SOUNDS = new ForgeSoundType(
             1.0F,
             1.0F,
@@ -240,12 +261,33 @@ public class blest {
             CLOUD_HIT::get,
             CLOUD_FALL::get
     );
-
+    public static final SoundType infection_SOUNDS = new ForgeSoundType(
+            1.0F,
+            1.0F,
+            Infection_BREAK::get,
+            Infection_STEP::get,
+            Infection_PLACE::get,
+            Infection_HIT::get,
+            Infection_FALL::get
+    );
     public static final RegistryObject<Block> cloud = BLOCKS.register("cloud", () -> new Block(
             BlockBehaviour.Properties.of()
             .strength(-1.0F, 3600000.0F)
             .sound(CLOUD_SOUNDS)
     ));
+    public static final RegistryObject<Block> infection_grass = BLOCKS.register("infection_grass", () -> new InfectionGrassBlock(
+            BlockBehaviour.Properties.of()
+                    .strength(0.8f,1.0f)
+                    .sound(SoundType.GRASS)
+                    .randomTicks()
+    ));
+    public static final RegistryObject<Block> infection = BLOCKS.register("infection", () -> new Block(
+            BlockBehaviour.Properties.of()
+                    .strength(2.0F,7.0F)
+                    .sound(infection_SOUNDS)
+    ));
+    public static final RegistryObject<Item> infection_ITEM = ITEMS.register("infection", () -> new BlockItem(infection.get(),new Item.Properties()));
+    public static final RegistryObject<Item> infection_grass_ITEM = ITEMS.register("infection_grass", () -> new BlockItem(infection_grass.get(),new Item.Properties()));
     public static final RegistryObject<Item> cloud_ITEM = ITEMS.register("cloud", () -> new BlockItem(cloud.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<SummonerBlockEntity>> SUMMONER_BLOCK_ENTITY =
             BLOCK_ENTITIES.register("summoner", () -> BlockEntityType.Builder.of(SummonerBlockEntity::new, summoner.get()).build(null));
@@ -337,6 +379,8 @@ public class blest {
         output.accept(SKY_CATALYST_BOOTS.get());
         output.accept(the_guardian_spawn_egg.get());
         output.accept(the_cursed_ones_spawn_egg.get());
+        output.accept(infection_grass_ITEM.get());
+        output.accept(infection.get());
     }).build());
     public blest() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();

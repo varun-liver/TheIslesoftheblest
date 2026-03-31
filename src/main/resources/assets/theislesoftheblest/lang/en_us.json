@@ -22,5 +22,7 @@
   "biome.theislesoftheblest.large_sky_forest": "Large Sky Forest",
   "entity.theislesoftheblest.theinfection": "The Infection",
   "entity.theislesoftheblest.the_cursed_ones": "The Cursed Ones",
-  "block.theislesoftheblest.cloud": "Cloud"
+  "block.theislesoftheblest.cloud": "Cloud",
+  "block.theislesoftheblest.infection": "Infection Block",
+  "item.theislesoftheblest.the_guardian_spawn_egg": "The Guardian Spawn Egg"
 }

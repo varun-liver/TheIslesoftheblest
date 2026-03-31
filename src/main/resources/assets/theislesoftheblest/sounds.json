@@ -74,5 +74,30 @@
     "sounds": [
       "theislesoftheblest:block/cloud/fall"
     ]
+  },
+  "block.infection.break": {
+    "sounds": [
+      "theislesoftheblest:block/infection/break"
+    ]
+  },
+  "block.infection.step": {
+    "sounds": [
+      "theislesoftheblest:block/infection/step"
+    ]
+  },
+  "block.infection.hit": {
+    "sounds": [
+      "theislesoftheblest:block/infection/hit"
+    ]
+  },
+  "block.infection.place": {
+    "sounds": [
+      "theislesoftheblest:block/infection/place"
+    ]
+  },
+  "block.infection.fall": {
+    "sounds": [
+      "theislesoftheblest:block/infection/fall"
+    ]
   }
 }
