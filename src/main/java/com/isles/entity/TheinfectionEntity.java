@@ -52,10 +52,8 @@ public class TheinfectionEntity extends Monster {
     @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
-        LOGGER.info("The Infection mob died. Setting SPREAD_INFECTION to false.");
         if (!this.level().isClientSide) {
             Config.spreadInfection = false;
-            LOGGER.info("Config.spreadInfection set to false (runtime only).");
             if (this.level().getServer() != null) {
                 this.level().getServer().getPlayerList().broadcastSystemMessage(
                         Component.literal("The Infection has been defeated! Spread stopped."),

@@ -9,6 +9,8 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,13 +20,42 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class InfectionBlockEntity extends BlockEntity {
+    public static final Set<InfectionBlockEntity> INSTANCES = ConcurrentHashMap.newKeySet();
     private BlockState savedState = Blocks.AIR.defaultBlockState();
     private int revertDelay = -1;
     private int spreadTimer = -1;
-
+    private Block[] avoid = {
+            Blocks.POLISHED_DEEPSLATE
+    };
     public InfectionBlockEntity(BlockPos pos, BlockState state) {
         super(blest.INFECTION_BLOCK_ENTITY.get(), pos, state);
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (this.level != null && !this.level.isClientSide) {
+            INSTANCES.add(this);
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        if (this.level != null && !this.level.isClientSide) {
+            INSTANCES.remove(this);
+        }
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        INSTANCES.remove(this);
     }
 
     public void tick(Level level, BlockPos pos, BlockState state) {
@@ -63,14 +94,17 @@ public class InfectionBlockEntity extends BlockEntity {
         }
     }
 
-    private void spread(Level level, BlockPos pos, BlockState state) {
+    public void spread(Level level, BlockPos pos, BlockState state) {
         if (state.is(blest.infection.get())) {
             Direction dir = Direction.getRandom(level.random);
             BlockPos targetPos = pos.relative(dir);
             BlockState targetState = level.getBlockState(targetPos);
 
-            if (!targetState.isAir() && !targetState.is(blest.infection.get()) && !targetState.is(blest.infection_grass.get())) {
+            if (!targetState.isAir() && !targetState.is(blest.infection.get()) && !targetState.is(blest.infection_grass.get()) && Arrays.asList(avoid).contains(Blocks.POLISHED_DEEPSLATE)) {
                 infect(level, targetPos, targetState);
+                if (this.level != null) {
+                    this.level.playSound(null, this.getBlockPos(), blest.Infection_SPREAD.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+                }
             }
         } else if (state.is(blest.infection_grass.get())) {
             for (int i = 0; i < 4; i++) {

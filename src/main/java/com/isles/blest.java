@@ -258,6 +258,10 @@ public class blest {
             "block.infection.fall",
             ()-> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.infection.break"))
     );
+    public static final RegistryObject<SoundEvent> Infection_SPREAD = SOUND_EVENTS.register(
+            "block.infection.spread",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.infection.spread"))
+    );
     public static final SoundType CLOUD_SOUNDS = new ForgeSoundType(
             1.0F,
             1.0F,
@@ -433,19 +437,26 @@ public class blest {
                     return 1;
                 })
         );
+        dispatcher.register(Commands.literal("spread")
+                .requires(source -> source.hasPermission(2))
+                .executes(context -> {
+                    ServerLevel level = context.getSource().getLevel();
+                    int count = 0;
+                    for (InfectionBlockEntity be : InfectionBlockEntity.INSTANCES) {
+                        if (be.getLevel() == level) {
+                            be.spread(level, be.getBlockPos(), be.getBlockState());
+                            count++;
+                        }
+                    }
+                    int finalCount = count;
+                    context.getSource().sendSuccess(() -> Component.literal("Infection spread triggered for " + finalCount + " blocks."), true);
+                    return 1;
+                })
+        );
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         // Some common setup code
-        LOGGER.info("HELLO FROM COMMON SETUP");
-        LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
-
-        if (Config.logDirtBlock) LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
-
-        LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
-
-        Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
-
         event.enqueueWork(() -> {
             com.isles.worldgen.BlestTerrablender.registerRegions();
             SurfaceRuleManager.addSurfaceRules(
@@ -479,8 +490,6 @@ public class blest {
     public void onServerStarting(ServerStartingEvent event) {
         // Reset spread infection to config value whenever a server starts (per-world reset)
         Config.spreadInfection = Config.SPREAD_INFECTION.get();
-        LOGGER.info("Server starting. Infection spread reset to: " + Config.spreadInfection);
-        LOGGER.info("HELLO from server starting");
     }
 
     @SubscribeEvent
@@ -529,8 +538,6 @@ public class blest {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
             // Some client setup code
-            LOGGER.info("HELLO FROM CLIENT SETUP");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
         }
 
         @SubscribeEvent

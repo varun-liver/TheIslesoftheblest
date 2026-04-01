@@ -40,24 +40,23 @@ public class SummonerBlockEntity extends BlockEntity {
         );
         if (player != null) {
             if(!blockEntity.summoned) {
-                for (int i = 0; i < 10; i++) {
-                    Entity entity = null;
-                    switch (blockEntity.summontype) {
-                        case 0:
-                            entity = blest.the_infection.get().create(level);
-                            break;
-                        case 1:
-                            entity = blest.the_guardian.get().create(level);
-                            break;
-                        case 2:
-                            entity = blest.the_cursed_ones.get().create(level);
-                        default:
-                            break;
-                    }
-                    if (entity != null) {
-                        entity.moveTo(pos.getX(), pos.getY(), pos.getZ(), 0, 0);
-                        level.addFreshEntity(entity);
-                    }
+                Entity entity = null;
+                switch (blockEntity.summontype) {
+                    case 0:
+                        entity = blest.the_infection.get().create(level);
+                        break;
+                    case 1:
+                        entity = blest.the_guardian.get().create(level);
+                        break;
+                    case 2:
+                        entity = blest.the_cursed_ones.get().create(level);
+                        break;
+                    default:
+                        break;
+                }
+                if (entity != null) {
+                    entity.moveTo(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 0, 0);
+                    level.addFreshEntity(entity);
                 }
                 blockEntity.summoned = true;
                 blockEntity.markDirty();

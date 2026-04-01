@@ -44,10 +44,8 @@ public class Config {
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
-        System.out.println("Config onLoad triggered.");
         logDirtBlock = LOG_DIRT_BLOCK.get();
         spreadInfection = SPREAD_INFECTION.get();
-        System.out.println("Config spreadInfection loaded as: " + spreadInfection);
         magicNumber = MAGIC_NUMBER.get();
         magicNumberIntroduction = MAGIC_NUMBER_INTRODUCTION.get();
 

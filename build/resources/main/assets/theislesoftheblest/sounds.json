@@ -99,5 +99,10 @@
     "sounds": [
       "theislesoftheblest:block/infection/fall"
     ]
+  },
+  "block.infection.spread": {
+    "sounds": [
+      "theislesoftheblest:block/infection/spread"
+    ]
   }
 }
