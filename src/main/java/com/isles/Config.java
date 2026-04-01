@@ -21,6 +21,8 @@ public class Config {
 
     private static final ForgeConfigSpec.BooleanValue LOG_DIRT_BLOCK = BUILDER.comment("Whether to log the dirt block on common setup").define("logDirtBlock", true);
 
+    public static final ForgeConfigSpec.BooleanValue SPREAD_INFECTION = BUILDER.comment("Whether the infection should spread").define("spreadInfection", true);
+
     private static final ForgeConfigSpec.IntValue MAGIC_NUMBER = BUILDER.comment("A magic number").defineInRange("magicNumber", 42, 0, Integer.MAX_VALUE);
 
     public static final ForgeConfigSpec.ConfigValue<String> MAGIC_NUMBER_INTRODUCTION = BUILDER.comment("What you want the introduction message to be for the magic number").define("magicNumberIntroduction", "The magic number is... ");
@@ -31,6 +33,7 @@ public class Config {
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static boolean logDirtBlock;
+    public static boolean spreadInfection = true;
     public static int magicNumber;
     public static String magicNumberIntroduction;
     public static Set<Item> items;
@@ -41,7 +44,10 @@ public class Config {
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
+        System.out.println("Config onLoad triggered.");
         logDirtBlock = LOG_DIRT_BLOCK.get();
+        spreadInfection = SPREAD_INFECTION.get();
+        System.out.println("Config spreadInfection loaded as: " + spreadInfection);
         magicNumber = MAGIC_NUMBER.get();
         magicNumberIntroduction = MAGIC_NUMBER_INTRODUCTION.get();
 

@@ -1,5 +1,6 @@
 package com.isles.entity;
 
+import com.isles.Config;
 import com.isles.blest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
@@ -21,7 +22,12 @@ import net.minecraft.world.entity.AnimationState;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
 
+import net.minecraft.network.chat.Component;
+import com.mojang.logging.LogUtils;
+import org.slf4j.Logger;
+
 public class TheinfectionEntity extends Monster {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static final float SMASH_DAMAGE = 5.0F;
     private static final int SMASH_HIT_TICK = 5;
     private static final int SMASH_LENGTH = 60;
@@ -41,6 +47,22 @@ public class TheinfectionEntity extends Monster {
 
     public TheinfectionEntity(EntityType<? extends TheinfectionEntity> type, Level level) {
         super(type, level);
+    }
+
+    @Override
+    public void die(DamageSource damageSource) {
+        super.die(damageSource);
+        LOGGER.info("The Infection mob died. Setting SPREAD_INFECTION to false.");
+        if (!this.level().isClientSide) {
+            Config.spreadInfection = false;
+            LOGGER.info("Config.spreadInfection set to false (runtime only).");
+            if (this.level().getServer() != null) {
+                this.level().getServer().getPlayerList().broadcastSystemMessage(
+                        Component.literal("The Infection has been defeated! Spread stopped."),
+                        false
+                );
+            }
+        }
     }
 
     public static AttributeSupplier.Builder createAttributes() {

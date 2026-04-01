@@ -1,5 +1,6 @@
 package com.isles.block;
 
+import com.isles.Config;
 import com.isles.blest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -9,37 +10,32 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SpreadingSnowyDirtBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class InfectionGrassBlock extends SpreadingSnowyDirtBlock {
+import com.isles.InfectionBlockEntity;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import org.jetbrains.annotations.Nullable;
+
+public class InfectionGrassBlock extends SpreadingSnowyDirtBlock implements EntityBlock {
     public InfectionGrassBlock(Properties properties) {
         super(properties);
     }
 
+    @Nullable
     @Override
-    public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        super.randomTick(state, level, pos, random);
-        if (!level.isAreaLoaded(pos, 3)) {
-            return;
-        }
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new InfectionBlockEntity(pos, state);
+    }
 
-        for (int i = 0; i < 4; i++) {
-            BlockPos targetPos = pos.offset(
-                    random.nextInt(3) - 1,
-                    random.nextInt(5) - 3,
-                    random.nextInt(3) - 1
-            );
-            if (!level.getBlockState(targetPos).is(blest.infection_grass.get())) {
-                continue;
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(net.minecraft.world.level.Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide ? null : (level1, pos, state1, blockEntity) -> {
+            if (blockEntity instanceof InfectionBlockEntity infectionBE) {
+                infectionBE.tick(level1, pos, state1);
             }
-            if (!canSurvive(state, level, targetPos)) {
-                continue;
-            }
-
-            BlockState newState = blest.infection_grass.get().defaultBlockState();
-            if (newState.hasProperty(SNOWY)) {
-                newState = newState.setValue(SNOWY, level.getBlockState(targetPos.above()).is(Blocks.SNOW));
-            }
-            level.setBlockAndUpdate(targetPos, newState);
-        }
+        };
     }
 
     @Override

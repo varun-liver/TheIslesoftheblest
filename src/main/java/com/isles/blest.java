@@ -65,10 +65,16 @@ import terrablender.api.SurfaceRuleManager;
 import com.isles.portal.CloudPortalBlock;
 import com.isles.portal.CloudPortalIgniterItem;
 import com.isles.block.InfectionGrassBlock;
+import com.isles.block.InfectionBlock;
 
 import java.util.List;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraft.world.entity.player.Player;
+
+import net.minecraftforge.event.RegisterCommandsEvent;
+import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.CommandSourceStack;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(blest.MODID)
@@ -281,16 +287,19 @@ public class blest {
                     .sound(SoundType.GRASS)
                     .randomTicks()
     ));
-    public static final RegistryObject<Block> infection = BLOCKS.register("infection", () -> new Block(
+    public static final RegistryObject<Block> infection = BLOCKS.register("infection", () -> new InfectionBlock(
             BlockBehaviour.Properties.of()
                     .strength(2.0F,7.0F)
                     .sound(infection_SOUNDS)
+                    .randomTicks()
     ));
     public static final RegistryObject<Item> infection_ITEM = ITEMS.register("infection", () -> new BlockItem(infection.get(),new Item.Properties()));
     public static final RegistryObject<Item> infection_grass_ITEM = ITEMS.register("infection_grass", () -> new BlockItem(infection_grass.get(),new Item.Properties()));
     public static final RegistryObject<Item> cloud_ITEM = ITEMS.register("cloud", () -> new BlockItem(cloud.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<SummonerBlockEntity>> SUMMONER_BLOCK_ENTITY =
             BLOCK_ENTITIES.register("summoner", () -> BlockEntityType.Builder.of(SummonerBlockEntity::new, summoner.get()).build(null));
+    public static final RegistryObject<BlockEntityType<InfectionBlockEntity>> INFECTION_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("infection", () -> BlockEntityType.Builder.of(InfectionBlockEntity::new, infection.get(), infection_grass.get()).build(null));
     //----------------------------------SKY TIER----------------------------------
     //----------------------------------SKY TIER----------------------------------
     private static final TagKey<Block> INCORRECT_FOR_SKY_TOOL =
@@ -382,6 +391,7 @@ public class blest {
         output.accept(infection_grass_ITEM.get());
         output.accept(infection.get());
     }).build());
+
     public blest() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
@@ -410,6 +420,19 @@ public class blest {
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+    }
+
+    @SubscribeEvent
+    public void onRegisterCommands(RegisterCommandsEvent event) {
+        CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+        dispatcher.register(Commands.literal("revert")
+                .requires(source -> source.hasPermission(2)) // Requires Op
+                .executes(context -> {
+                    Config.spreadInfection = true;
+                    context.getSource().sendSuccess(() -> Component.literal("Infection spread has been manually re-enabled."), true);
+                    return 1;
+                })
+        );
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
@@ -454,7 +477,9 @@ public class blest {
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
-        // Do something when the server starts
+        // Reset spread infection to config value whenever a server starts (per-world reset)
+        Config.spreadInfection = Config.SPREAD_INFECTION.get();
+        LOGGER.info("Server starting. Infection spread reset to: " + Config.spreadInfection);
         LOGGER.info("HELLO from server starting");
     }
 
@@ -506,15 +531,6 @@ public class blest {
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-//            Minecraft mc = Minecraft.getInstance();
-//            if (!ModList.get().isLoaded("amuletmod")) {
-//                if (mc.player != null) {
-//                    mc.player.displayClientMessage(
-//                            Component.literal("Warning: Amulet system not installed! Some features may not work."),
-//                            false
-//                    );
-//                }
-//            }
         }
 
         @SubscribeEvent
