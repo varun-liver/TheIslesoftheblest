@@ -102,6 +102,12 @@ public class blest {
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "theislesoftheblest" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+
+    public static final DeferredRegister<com.mojang.serialization.Codec<? extends net.minecraft.world.level.biome.BiomeSource>> BIOME_SOURCE_CODECS = DeferredRegister.create(Registries.BIOME_SOURCE, MODID);
+    public static final RegistryObject<com.mojang.serialization.Codec<com.isles.worldgen.InfectionBiomeSource>> INFECTION_BIOME_SOURCE = BIOME_SOURCE_CODECS.register("infection_biome_source", () -> com.isles.worldgen.InfectionBiomeSource.CODEC);
+
+    public static final DeferredRegister<net.minecraft.world.level.levelgen.feature.Feature<?>> FEATURES = DeferredRegister.create(ForgeRegistries.FEATURES, MODID);
+    public static final RegistryObject<net.minecraft.world.level.levelgen.feature.Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> INFECTION_TREE_FEATURE = FEATURES.register("infection_trees", () -> new com.isles.worldgen.InfectionTreeFeature(net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.CODEC));
     //----------------------------------BLOCK/ITEM REG----------------------------------
     //----------------------------------BLOCK/ITEM REG----------------------------------
     // Creates a new Block with the id "theislesoftheblest:sky_grass", combining the namespace and path
@@ -420,6 +426,8 @@ public class blest {
         SOUND_EVENTS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
+        BIOME_SOURCE_CODECS.register(modEventBus);
+        FEATURES.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);

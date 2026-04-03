@@ -76,7 +76,7 @@ public class TheinfectionEntity extends Monster {
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 400.0D)
-                .add(Attributes.ATTACK_DAMAGE, 10.0D)
+                .add(Attributes.ATTACK_DAMAGE, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.FOLLOW_RANGE, 24.0D);
     }
@@ -154,7 +154,7 @@ public class TheinfectionEntity extends Monster {
                 
                 // Reduce damage if the target is a player wearing full sky_catalyst armor
                 if (target instanceof Player player && isWearingSkyCatalyst(player)) {
-                    damage = this.currentAttackType == 1 ? 5.0F : 2.0F;
+                    damage = this.currentAttackType == 1 ? 7.0F : 2.0F;
                 }
 
                 if (this.currentAttackType != 3) {

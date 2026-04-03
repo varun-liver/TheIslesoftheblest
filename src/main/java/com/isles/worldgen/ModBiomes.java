@@ -11,6 +11,8 @@ public final class ModBiomes {
             ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(blest.MODID, "sky_forest"));
     public static final ResourceKey<Biome> LARGE_SKY_FOREST =
             ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(blest.MODID, "large_sky_forest"));
+    public static final ResourceKey<Biome> THE_INFECTION_LANDS =
+            ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(blest.MODID, "the_infection_lands"));
 
     private ModBiomes() {
     }

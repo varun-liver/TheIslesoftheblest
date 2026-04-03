@@ -64,14 +64,14 @@ public class InfectionBlockEntity extends BlockEntity {
         if (Config.spreadInfection) {
             if (spreadTimer == -1) {
                 // Initial spread timer: 8 minutes (9600 ticks) + random offset to stagger
-                spreadTimer = 9600 + level.random.nextInt(400);
+                spreadTimer = 6000 + level.random.nextInt(100);
             }
 
             if (spreadTimer > 0) {
                 spreadTimer--;
             } else {
                 spread(level, pos, state);
-                spreadTimer = 9600; // Reset to 8 minutes
+                spreadTimer = 6000; // Reset to 8 minutes
             }
         } else {
             if (revertDelay == -1) {

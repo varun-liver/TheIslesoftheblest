@@ -11,6 +11,8 @@ public final class BlestSurfaceRules {
     public static SurfaceRules.RuleSource makeRules() {
         SurfaceRules.RuleSource skyGrass = SurfaceRules.state(blest.sky_grass.get().defaultBlockState());
         SurfaceRules.RuleSource dirt = SurfaceRules.state(Blocks.DIRT.defaultBlockState());
+        SurfaceRules.RuleSource infectionGrass = SurfaceRules.state(blest.infection_grass.get().defaultBlockState());
+        SurfaceRules.RuleSource infection = SurfaceRules.state(blest.infection.get().defaultBlockState());
 
         return SurfaceRules.sequence(
                 SurfaceRules.ifTrue(
@@ -19,7 +21,20 @@ public final class BlestSurfaceRules {
                                 SurfaceRules.ifTrue(SurfaceRules.ON_FLOOR, skyGrass),
                                 SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, dirt)
                         )
+                ),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.isBiome(ModBiomes.THE_INFECTION_LANDS),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(SurfaceRules.ON_FLOOR, 
+                                        SurfaceRules.sequence(
+                                                SurfaceRules.ifTrue(SurfaceRules.noiseCondition(net.minecraft.world.level.levelgen.Noises.PATCH, 0.0D), infectionGrass),
+                                                infection
+                                        )
+                                ),
+                                SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, infection)
+                        )
                 )
         );
     }
+
 }
