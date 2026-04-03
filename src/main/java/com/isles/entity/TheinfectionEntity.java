@@ -3,9 +3,7 @@ package com.isles.entity;
 import com.isles.Config;
 import com.isles.blest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
@@ -18,17 +16,14 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.entity.AnimationState;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
-
-import net.minecraft.network.chat.Component;
-import com.mojang.logging.LogUtils;
-import org.slf4j.Logger;
+import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.BossEvent;
 
 public class TheinfectionEntity extends Monster {
-    private static final Logger LOGGER = LogUtils.getLogger();
-    private static final float SMASH_DAMAGE = 5.0F;
+    private static final float SMASH_DAMAGE = 30.0F;
     private static final int SMASH_HIT_TICK = 5;
     private static final int SMASH_LENGTH = 60;
 
@@ -48,21 +43,36 @@ public class TheinfectionEntity extends Monster {
     public TheinfectionEntity(EntityType<? extends TheinfectionEntity> type, Level level) {
         super(type, level);
     }
-
+    private final ServerBossEvent bossEvent = (ServerBossEvent) new ServerBossEvent(
+            this.getDisplayName(),
+            BossEvent.BossBarColor.RED,
+            BossEvent.BossBarOverlay.PROGRESS
+    ).setDarkenScreen(true);
     @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
         if (!this.level().isClientSide) {
             Config.spreadInfection = false;
-            if (this.level().getServer() != null) {
-                this.level().getServer().getPlayerList().broadcastSystemMessage(
-                        Component.literal("The Infection has been defeated! Spread stopped."),
-                        false
-                );
-            }
+
         }
     }
+    @Override
+    public void startSeenByPlayer(ServerPlayer player) {
+        super.startSeenByPlayer(player);
+        this.bossEvent.addPlayer(player);
+    }
 
+    @Override
+    public void stopSeenByPlayer(ServerPlayer player) {
+        super.stopSeenByPlayer(player);
+        this.bossEvent.removePlayer(player);
+    }
+    private static boolean isWearingSkyCatalyst(Player player) {
+        return player.getItemBySlot(EquipmentSlot.HEAD).is(blest.SKY_CATALYST_HELMET.get())
+                && player.getItemBySlot(EquipmentSlot.CHEST).is(blest.SKY_CATALYST_CHESTPLATE.get())
+                && player.getItemBySlot(EquipmentSlot.LEGS).is(blest.SKY_CATALYST_LEGGINGS.get())
+                && player.getItemBySlot(EquipmentSlot.FEET).is(blest.SKY_CATALYST_BOOTS.get());
+    }
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 400.0D)
@@ -87,6 +97,7 @@ public class TheinfectionEntity extends Monster {
         super.aiStep();
         if (!this.level().isClientSide) {
             this.tickCustomAttack();
+            this.bossEvent.setProgress(this.getHealth()/this.getMaxHealth());
         }
     }
 
@@ -140,6 +151,12 @@ public class TheinfectionEntity extends Monster {
             int hitTick = this.currentAttackType == 1 ? SMASH_HIT_TICK : BLAST_HIT_TICK;
             if (this.currentAttackTick >= hitTick && this.isWithinAttackRange(target)) {
                 float damage = this.currentAttackType == 1 ? SMASH_DAMAGE : BLAST_DAMAGE;
+                
+                // Reduce damage if the target is a player wearing full sky_catalyst armor
+                if (target instanceof Player player && isWearingSkyCatalyst(player)) {
+                    damage = this.currentAttackType == 1 ? 5.0F : 2.0F;
+                }
+
                 if (this.currentAttackType != 3) {
                     if (target.hurt(this.damageSources().mobAttack(this), damage)) {
                         this.doEnchantDamageEffects(this, target);
@@ -166,7 +183,6 @@ public class TheinfectionEntity extends Monster {
     protected void onSummonStart(Level level, BlockPos pos) {
         if (!level.isClientSide) {
             for(int i = 0; i < 10; i++) {
-                // Replace 'YOUR_ENTITY_TYPE' with your registered entity
                 Entity entity = blest.sky_guardian.get().create(level);
                 if (entity != null) {
                     entity.moveTo(pos.getX(), pos.getY(), pos.getZ(), 0, 0);
@@ -179,7 +195,7 @@ public class TheinfectionEntity extends Monster {
     private static class TheInfectionMeleeAttackGoal extends MeleeAttackGoal {
         private final TheinfectionEntity theinfection;
 
-        public TheInfectionMeleeAttackGoal(TheinfectionEntity theinfection, double speedModifier, boolean followingTargetEvenIfNotSeen) {
+        public  TheInfectionMeleeAttackGoal(TheinfectionEntity theinfection, double speedModifier, boolean followingTargetEvenIfNotSeen) {
             super(theinfection, speedModifier, followingTargetEvenIfNotSeen);
             this.theinfection = theinfection;
         }

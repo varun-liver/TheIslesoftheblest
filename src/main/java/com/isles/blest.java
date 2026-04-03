@@ -14,7 +14,12 @@ import com.isles.entity.TheCursedOnesEntity;
 import com.isles.entity.TheinfectionEntity;
 import com.isles.entity.ThewhispererEntity;
 import com.mojang.logging.LogUtils;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
+import net.minecraft.client.gui.components.BossHealthOverlay;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
@@ -30,6 +35,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -529,6 +535,63 @@ public class blest {
         CompoundTag original = event.getOriginal().getPersistentData();
         CompoundTag originalPersisted = original.getCompound(Player.PERSISTED_NBT_TAG);
         event.getEntity().getPersistentData().put(Player.PERSISTED_NBT_TAG, originalPersisted.copy());
+    }
+
+    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+    public static class ForgeClientEvents {
+        private static final ResourceLocation INFECTION_BAR = ResourceLocation.fromNamespaceAndPath(blest.MODID, "textures/bossbars/theinfection.png");
+        private static final ResourceLocation GUARDIAN_BAR = ResourceLocation.fromNamespaceAndPath(blest.MODID, "textures/bossbars/theguardian.png");
+
+        @SubscribeEvent
+        public static void onBossBarRender(CustomizeGuiOverlayEvent.BossEventProgress event) {
+            Component name = event.getBossEvent().getName();
+            String bossName = name.getString();
+            ResourceLocation customTexture = null;
+
+            if (bossName.equals("The Infection")) {
+                customTexture = INFECTION_BAR;
+            } else if (bossName.equals("The Guardian")) {
+                customTexture = GUARDIAN_BAR;
+            }
+
+            if (customTexture != null) {
+                event.setCanceled(true); // Stop vanilla rendering
+
+                int x = event.getX();
+                int y = event.getY();
+                float progress = event.getBossEvent().getProgress();
+
+                // 1. Correct path for vanilla boss bars (1.20.1 uses gui/bars.png)
+                ResourceLocation vanillaBars = ResourceLocation.withDefaultNamespace("textures/gui/bars.png");
+
+                // 2. Map Color and Overlay to V-offset
+                int colorIndex = event.getBossEvent().getColor().ordinal();
+                int overlayIndex = event.getBossEvent().getOverlay().ordinal();
+                int vOffset = (overlayIndex * 7 + colorIndex) * 10;
+
+                // 3. Draw Vanilla Bossbar Background (V-offset is where background starts)
+                int vanillaY = y;
+                event.getGuiGraphics().blit(vanillaBars, x, vanillaY, 0, vOffset, 182, 5, 256, 256);
+
+                // 4. Draw Vanilla Progress (V-offset + 5 is where progress starts)
+                int currentWidth = (int) (progress * 182.0F);
+                if (currentWidth > 0) {
+                    event.getGuiGraphics().blit(vanillaBars, x, vanillaY, 0, vOffset + 5, currentWidth, 5, 256, 256);
+                }
+
+                // 5. Draw custom image overlay on top at the original Y
+                event.getGuiGraphics().blit(customTexture, x, y, 0, 0, 182, 15, 256, 256);
+
+                // 6. Draw Boss Name
+                Font font = Minecraft.getInstance().font;
+                int nameWidth = font.width(name);
+                int nameX = x + 91 - nameWidth / 2;
+                int nameY = y - 10;
+                event.getGuiGraphics().drawString(font, name, nameX, nameY, 0xFFFFFF);
+
+                event.setIncrement(25);
+            }
+        }
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent

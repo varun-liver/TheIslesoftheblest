@@ -21,8 +21,12 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.AnimationState;
+import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.world.BossEvent;
+import net.minecraft.server.level.ServerPlayer;
 
 public class TheGuardianEntity extends Monster {
+    private final ServerBossEvent bossEvent = (ServerBossEvent) new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.BLUE, BossEvent.BossBarOverlay.PROGRESS).setDarkenScreen(true);
     private static final float SMASH_DAMAGE = 5.0F;
     private static final int SMASH_HIT_TICK = 5;
     private static final int SMASH_LENGTH = 60;
@@ -70,7 +74,20 @@ public class TheGuardianEntity extends Monster {
         super.aiStep();
         if (!this.level().isClientSide) {
             this.tickCustomAttack();
+            this.bossEvent.setProgress(this.getHealth() / this.getMaxHealth());
         }
+    }
+
+    @Override
+    public void startSeenByPlayer(ServerPlayer player) {
+        super.startSeenByPlayer(player);
+        this.bossEvent.addPlayer(player);
+    }
+
+    @Override
+    public void stopSeenByPlayer(ServerPlayer player) {
+        super.stopSeenByPlayer(player);
+        this.bossEvent.removePlayer(player);
     }
 
     @Override
