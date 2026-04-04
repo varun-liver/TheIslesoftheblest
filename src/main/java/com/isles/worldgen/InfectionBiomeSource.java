@@ -36,7 +36,7 @@ public class InfectionBiomeSource extends BiomeSource {
         // (100, 100)   -> (25, 25)
         // (-100, 100)  -> (-25, 25)
         // (-100, -100) -> (-25, -25)
-        int radius = 16; // About 64 blocks radius
+        int radius = 24; // About 96 blocks radius
 
         if (isNear(x, z, 25, 25, radius) || isNear(x, z, -25, 25, radius) || isNear(x, z, -25, -25, radius)) {
             return infectionBiome;
