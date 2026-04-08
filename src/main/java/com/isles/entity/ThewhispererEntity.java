@@ -1,5 +1,6 @@
 package com.isles.entity;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.AgeableMob;
@@ -11,16 +12,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import java.util.EnumSet;
-
+import com.isles.blest;
 public class ThewhispererEntity extends Animal {
     public boolean start;
     private Player followTarget;
     private boolean greeted;
+
     public ThewhispererEntity(EntityType<? extends ThewhispererEntity> type, Level level) {
         super(type, level);
         start = false;
         greeted = false;
-
     }
 
     public void setFollowTarget(Player player) {
@@ -56,7 +57,6 @@ public class ThewhispererEntity extends Animal {
         private final double speed;
         private int waitTicks = 0;
         private int step = 0;
-
         @Override
         public void tick() {
             Player target = mob.followTarget;
@@ -92,24 +92,32 @@ public class ThewhispererEntity extends Animal {
                         step = 5;
                         waitTicks = 20;
                     } else if (step == 5) {
-                    target.sendSystemMessage(Component.literal("The only way to beat him is by using the lengendary sword called Harpe"));
-                    step = 6;
-                    waitTicks = 20;
-                }
-                 else if (step == 6) {
-                    target.sendSystemMessage(Component.literal("You must do it"));
-                    step = 7;
-                    waitTicks = 20;
-                } else if (step == 7) {
-                    target.sendSystemMessage(Component.literal("For the Isles Of The Blest"));
-                    step = 8;
-                    waitTicks = 20;
-                } else if (step == 8) {
+                        target.sendSystemMessage(Component.literal("The only way to beat him is by using the legendary sword called Harpe"));
+                        step = 6;
+                        waitTicks = 20;
+                    } else if (step == 6) {
+                        BlockPos towerPos = null;
+                        if (mob.level() instanceof ServerLevel serverLevel) {
+                            towerPos = blest.getTowerCoords(serverLevel, target.blockPosition());
+                        }
+                        String coords = towerPos != null ? towerPos.getX() + " " + towerPos.getZ() : "unknown coordinates";
+                        target.sendSystemMessage(Component.literal("Go to the portal at " + coords));
+                        step = 7;
+                        waitTicks = 20;
+                    } else if (step == 7) {
+                        target.sendSystemMessage(Component.literal("You must do it"));
+                        step = 8;
+                        waitTicks = 20;
+                    } else if (step == 8) {
+                        target.sendSystemMessage(Component.literal("For the Isles Of The Blest"));
+                        step = 9;
+                        waitTicks = 20;
+                    } else if (step == 9) {
                         mob.greeted = true;
                         if (!mob.level().isClientSide) {
                             mob.discard(); // no death animation, no drops
                         }
-                 }
+                    }
                 }
                 return;
             }

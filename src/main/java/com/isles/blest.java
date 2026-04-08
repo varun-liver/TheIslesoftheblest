@@ -1,19 +1,11 @@
 package com.isles;
 
-import com.isles.client.renderer.SkyGuardianRenderer;
-import com.isles.client.renderer.SkyGuardianModel;
-import com.isles.client.renderer.TheGuardianRenderer;
-import com.isles.client.renderer.TheGuardianModel;
-import com.isles.client.renderer.TheCursedOnesRenderer;
-import com.isles.client.renderer.TheCursedOnesModel;
-import com.isles.client.renderer.ThewhispererModel;
-import com.isles.client.renderer.ThewhispererRenderer;
-import com.isles.entity.SkyGuardianEntity;
-import com.isles.entity.TheGuardianEntity;
-import com.isles.entity.TheCursedOnesEntity;
-import com.isles.entity.TheinfectionEntity;
-import com.isles.entity.ThewhispererEntity;
+import com.isles.client.renderer.*;
+import com.isles.entity.*;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
@@ -186,6 +178,10 @@ public class blest {
             () -> new ForgeSpawnEggItem(the_cursed_ones, 0x3b3b3b, 0x7d2b2b, new Item.Properties()));
     public static final RegistryObject<Item> the_whisperer_spawn_egg = ITEMS.register("the_whisperer_spawn_egg",
             () -> new ForgeSpawnEggItem(the_whisperer, 0x9dffef, 0x1cff87, new Item.Properties()));
+    public static final RegistryObject<EntityType<Infection_GuardiansEntity>> Infection_Guardians = ENTITY_TYPES.register("infection_guardians",
+            () -> EntityType.Builder.of(Infection_GuardiansEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.8F)
+                    .build(MODID + ":infection_guardians"));
 
     //----------------------------------SOUND REG----------------------------------
     //----------------------------------SOUND REG----------------------------------
@@ -229,7 +225,18 @@ public class blest {
             "entity.the_cursed_ones.death",
             () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.the_cursed_ones.death"))
     );
-
+    public static final RegistryObject<SoundEvent> Infection_Guardians_DEATH = SOUND_EVENTS.register(
+            "entity.infection_guardians.death",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.infection_guardians.death"))
+    );
+    public static final RegistryObject<SoundEvent> Infection_Guardians_HURT = SOUND_EVENTS.register(
+            "entity.infection_guardians.hurt",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.infection_guardians.hurt"))
+    );
+    public static final RegistryObject<SoundEvent> Infection_Guardians_AMBIENT = SOUND_EVENTS.register(
+            "entity.infection_guardians.ambient",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "entity.infection_guardians.ambient"))
+    );
     public static final RegistryObject<SoundEvent> CLOUD_BREAK = SOUND_EVENTS.register(
             "block.cloud.break",
             () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "block.cloud.break"))
@@ -497,6 +504,7 @@ public class blest {
         event.put(the_whisperer.get(), ThewhispererEntity.createAttributes().build());
         event.put(the_guardian.get(), TheGuardianEntity.createAttributes().build());
         event.put(the_cursed_ones.get(), TheCursedOnesEntity.createAttributes().build());
+        event.put(Infection_Guardians.get(),Infection_GuardiansEntity.createAttributes().build());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -602,6 +610,26 @@ public class blest {
         }
     }
 
+    public static BlockPos getTowerCoords(ServerLevel level, BlockPos playerPos) {
+        // 1. Get the structure from the registry
+        var registry = level.registryAccess().registryOrThrow(Registries.STRUCTURE);
+        var towerKey = net.minecraft.resources.ResourceKey.create(Registries.STRUCTURE,
+                ResourceLocation.fromNamespaceAndPath(MODID, "portal_ruins"));
+
+        Holder<Structure> towerHolder = registry.getHolderOrThrow(towerKey);
+
+        // 2. Ask the chunk generator to find the nearest one
+        // Search radius is in chunks (100 chunks = 1600 blocks)
+        Pair<BlockPos, Holder<Structure>> result = level.getChunkSource().getGenerator()
+                .findNearestMapStructure(level, net.minecraft.core.HolderSet.direct(towerHolder), playerPos, 100, false);
+
+        if (result != null) {
+            return result.getFirst(); // This is the BlockPos of the structure!
+        }
+
+        return null; // Not found
+    }
+
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
@@ -618,6 +646,7 @@ public class blest {
             event.registerEntityRenderer(the_whisperer.get(), ThewhispererRenderer::new);
             event.registerEntityRenderer(the_guardian.get(), TheGuardianRenderer::new);
             event.registerEntityRenderer(the_cursed_ones.get(), TheCursedOnesRenderer::new);
+            event.registerEntityRenderer(Infection_Guardians.get(), Infection_GuardiansRenderer::new);
         }
 
         @SubscribeEvent
@@ -627,6 +656,7 @@ public class blest {
             event.registerLayerDefinition(ThewhispererModel.LAYER_LOCATION, ThewhispererModel::createBodyLayer);
             event.registerLayerDefinition(TheGuardianModel.LAYER_LOCATION, TheGuardianModel::createBodyLayer);
             event.registerLayerDefinition(TheCursedOnesModel.LAYER_LOCATION, TheCursedOnesModel::createBodyLayer);
+            event.registerLayerDefinition(Infection_GuardiansModel.LAYER_LOCATION, Infection_GuardiansModel::createBodyLayer);
         }
     }
 }

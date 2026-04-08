@@ -57,9 +57,7 @@ public class ThewhispererModel extends HierarchicalModel<ThewhispererEntity> {
 	@Override
 	public void setupAnim(ThewhispererEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
-		if(limbSwing > 0.1F) {
-			this.animateWalk(ThewhispererAnimations.walk, limbSwing,limbSwingAmount,2f,2.5f);
-		}
+		this.animateWalk(ThewhispererAnimations.walk, limbSwing, limbSwingAmount, 2f, 2.5f);
 	}
 	@Override
 	public ModelPart root() {return this.root;}

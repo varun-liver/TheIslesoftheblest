@@ -4,6 +4,7 @@ package com.isles.client.renderer;// Made with Blockbench 5.0.7
 
 
 import com.isles.entity.TheGuardianEntity;
+import com.isles.client.renderer.TheGuardianAnimations;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.HierarchicalModel;
@@ -58,6 +59,7 @@ public class TheGuardianModel extends HierarchicalModel<TheGuardianEntity> {
 	@Override
 	public void setupAnim(TheGuardianEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
+		this.animateWalk(TheGuardianAnimations.walk, limbSwing, limbSwingAmount, 2.0F, 2.5F);
 		this.animate(entity.attackAnimationState, TheGuardianAnimations.smash, ageInTicks , 1.0F);
 		this.animate(entity.attack2AnimationState, TheGuardianAnimations.punch, ageInTicks , 1.0F);
 		this.animate(entity.attack3AnimationState, TheGuardianAnimations.spin, ageInTicks , 1.0F);

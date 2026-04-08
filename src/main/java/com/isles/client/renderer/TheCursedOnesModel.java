@@ -2,6 +2,7 @@ package com.isles.client.renderer;
 
 import com.isles.blest;
 import com.isles.entity.TheCursedOnesEntity;
+import com.isles.client.renderer.TheCursedOnesAnimations;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.HierarchicalModel;
@@ -63,6 +64,7 @@ public class TheCursedOnesModel extends HierarchicalModel<TheCursedOnesEntity> {
 	@Override
 	public void setupAnim(TheCursedOnesEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
+		this.animateWalk(TheCursedOnesAnimations.walk, limbSwing, limbSwingAmount, 2.0F, 2.5F);
 		this.animate(entity.punchAnimationState, TheCursedOnesAnimations.punch, ageInTicks, 1.0F);
 	}
 

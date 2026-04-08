@@ -188,6 +188,11 @@ public class TheinfectionEntity extends Monster {
                     entity.moveTo(pos.getX(), pos.getY(), pos.getZ(), 0, 0);
                     level.addFreshEntity(entity);
                 }
+                entity = EntityType.LIGHTNING_BOLT.create(level);
+                if (entity != null) {
+                    entity.moveTo(pos.getX(), pos.getY(), pos.getZ(), 0, 0);
+                    level.addFreshEntity(entity);
+                }
             }
         }
     }

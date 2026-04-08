@@ -133,9 +133,7 @@ public class TheinfectionModel extends HierarchicalModel<TheinfectionEntity> {
 	@Override
 	public void setupAnim(TheinfectionEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
-		if (limbSwingAmount > 0.1F) {
-			this.animateWalk(TheinfectionAnimations.walk, limbSwing, limbSwingAmount, 2f, 2.5f);
-		}
+		this.animateWalk(TheinfectionAnimations.walk, limbSwing, limbSwingAmount, 2f, 2.5f);
 		this.animate(entity.attackAnimationState, TheinfectionAnimations.smash, ageInTicks, 1.0F);
 		this.animate(entity.attack2AnimationState, TheinfectionAnimations.blast, ageInTicks, 1.0F);
 		this.animate(entity.attack3AnimationState, TheinfectionAnimations.summon, ageInTicks, 1.0F);
