@@ -26,11 +26,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class InfectionBlockEntity extends BlockEntity {
     public static final Set<InfectionBlockEntity> INSTANCES = ConcurrentHashMap.newKeySet();
-    private BlockState savedState = Blocks.AIR.defaultBlockState();
+    private BlockState savedState = blest.sky_grass.get().defaultBlockState();
     private int revertDelay = -1;
     private int spreadTimer = -1;
     private Block[] avoid = {
-            Blocks.POLISHED_DEEPSLATE
+            Blocks.POLISHED_DEEPSLATE,
+            Blocks.SMOOTH_STONE,
+            Blocks.MOSSY_COBBLESTONE_STAIRS,
+            Blocks.GLOWSTONE,
+            blest.summoner.get()
     };
     public InfectionBlockEntity(BlockPos pos, BlockState state) {
         super(blest.INFECTION_BLOCK_ENTITY.get(), pos, state);
@@ -86,12 +90,21 @@ public class InfectionBlockEntity extends BlockEntity {
         }
     }
 
-    private void revert(Level level, BlockPos pos) {
+    public void revert(Level level, BlockPos pos) {
         if (savedState != null && !savedState.isAir()) {
             level.setBlock(pos, savedState, 3);
         } else {
             level.destroyBlock(pos, false);
         }
+    }
+
+    public static void revertAll() {
+        for (InfectionBlockEntity be : INSTANCES) {
+            if (be.level != null && !be.level.isClientSide) {
+                be.revert(be.level, be.worldPosition);
+            }
+        }
+        INSTANCES.clear();
     }
 
     public void spread(Level level, BlockPos pos, BlockState state) {

@@ -1,6 +1,7 @@
 package com.isles;
 
 import com.isles.client.renderer.*;
+import com.isles.network.ModNetwork;
 import com.isles.entity.*;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
@@ -479,6 +480,7 @@ public class blest {
     private void commonSetup(final FMLCommonSetupEvent event) {
         // Some common setup code
         event.enqueueWork(() -> {
+            ModNetwork.init();
             com.isles.worldgen.BlestTerrablender.registerRegions();
             SurfaceRuleManager.addSurfaceRules(
                     SurfaceRuleManager.RuleCategory.OVERWORLD,

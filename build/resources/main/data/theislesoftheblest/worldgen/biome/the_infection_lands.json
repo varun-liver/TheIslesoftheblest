@@ -13,6 +13,14 @@
     "grass_color_modifier": "none"
   },
   "spawners": {
+    "monster": [
+      {
+        "type": "theislesoftheblest:infection_guardians",
+        "weight": 100,
+        "minCount": 1,
+        "maxCount": 4
+      }
+    ],
     "creature": [],
     "ambient": [],
     "axolotls": [],

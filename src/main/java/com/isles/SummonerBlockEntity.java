@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class SummonerBlockEntity extends BlockEntity {
-    private boolean[] summoned = new boolean[3]; // Tracks summoned status for each type (0: infection, 1: guardian, 2: cursed ones)
+    private boolean[] summoned = new boolean[4]; // Tracks summoned status for each type (0: infection, 1: guardian, 2: cursed ones)
     private int summontype;
 
     public SummonerBlockEntity(BlockPos pos, BlockState state) {
@@ -67,6 +67,9 @@ public class SummonerBlockEntity extends BlockEntity {
                             break;
                         case 2:
                             entity = blest.the_cursed_ones.get().create(level);
+                            break;
+                        case 3:
+                            entity = blest.Infection_Guardians.get().create(level);
                             break;
                         default:
                             break;

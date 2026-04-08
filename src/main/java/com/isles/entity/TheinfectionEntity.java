@@ -1,6 +1,8 @@
 package com.isles.entity;
 
+import com.isles.ArmorStandCutsceneManager;
 import com.isles.Config;
+import com.isles.InfectionBlockEntity;
 import com.isles.blest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.*;
@@ -53,7 +55,10 @@ public class TheinfectionEntity extends Monster {
         super.die(damageSource);
         if (!this.level().isClientSide) {
             Config.spreadInfection = false;
-
+            InfectionBlockEntity.revertAll();
+            if (damageSource.getEntity() instanceof ServerPlayer player) {
+                ArmorStandCutsceneManager.TheInfectionCutscene(player);
+            }
         }
     }
     @Override

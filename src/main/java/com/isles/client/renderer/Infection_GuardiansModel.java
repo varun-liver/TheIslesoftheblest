@@ -6,16 +6,17 @@ package com.isles.client.renderer;// Made with Blockbench 5.0.7
 import com.isles.entity.Infection_GuardiansEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 
-public class Infection_GuardiansModel<T extends Infection_GuardiansEntity> extends EntityModel<T> {
+public class Infection_GuardiansModel<T extends Infection_GuardiansEntity> extends HierarchicalModel<T> {
 	// This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation("theislesoftheblest", "infection_guardiansmodel"), "main");
+	private final ModelPart root;
 	private final ModelPart bone;
 	private final ModelPart leg1;
 	private final ModelPart leg2;
@@ -25,6 +26,7 @@ public class Infection_GuardiansModel<T extends Infection_GuardiansEntity> exten
 	private final ModelPart head;
 
 	public Infection_GuardiansModel(ModelPart root) {
+		this.root = root;
 		this.bone = root.getChild("bone");
 		this.leg1 = this.bone.getChild("leg1");
 		this.leg2 = this.bone.getChild("leg2");
@@ -56,12 +58,19 @@ public class Infection_GuardiansModel<T extends Infection_GuardiansEntity> exten
 	}
 
 	@Override
-	public void setupAnim(Infection_GuardiansEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+	public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+		this.root().getAllParts().forEach(ModelPart::resetPose);
+		this.animate(entity.walkAnimationState, Infection_GuardiansAnimations.walk, ageInTicks, 1.0F);
+		this.animate(entity.punchAnimationState, Infection_GuardiansAnimations.punch, ageInTicks, 1.0F);
+	}
 
+	@Override
+	public ModelPart root() {
+		return this.root;
 	}
 
 	@Override
 	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-		bone.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+		super.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
 	}
 }

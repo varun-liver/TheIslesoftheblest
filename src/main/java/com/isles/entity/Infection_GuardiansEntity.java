@@ -27,6 +27,7 @@ public class Infection_GuardiansEntity extends Monster {
     private static final int PUNCH_LENGTH = 40;
 
     public final AnimationState punchAnimationState = new AnimationState();
+    public final AnimationState walkAnimationState = new AnimationState();
 
     private int punchTick = 0;
     private boolean punchDidDamage = false;
@@ -58,9 +59,19 @@ public class Infection_GuardiansEntity extends Monster {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level().isClientSide) {
+        if (this.level().isClientSide) {
+            if (this.isMoving()) {
+                this.walkAnimationState.startIfStopped(this.tickCount);
+            } else {
+                this.walkAnimationState.stop();
+            }
+        } else {
             this.tickPunchAttack();
         }
+    }
+
+    private boolean isMoving() {
+        return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6D;
     }
 
     @Override
