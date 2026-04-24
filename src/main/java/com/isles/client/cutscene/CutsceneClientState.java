@@ -8,6 +8,7 @@ public final class CutsceneClientState {
     private static int totalTicks = 0;
     private static int elapsedTicks = 0;
 
+    private static int rendererChangeTicks = 0;
     private static int card1Ticks = 0;
     private static int gap1Ticks = 0;
     private static int card2Ticks = 0;
@@ -28,8 +29,26 @@ public final class CutsceneClientState {
     private static String card4Subtitle = "";
     private static String scrollText = "";
 
+    private static com.isles.client.AnimationLoader.BedrockAnimation currentAnimation = null;
+    private static final String MODEL_ANIM_RESOURCE = "assets/theislesoftheblest/animations/modelanimation.json";
+    private static final String MODEL_ANIM_NAME = "animation";
+
+    private static com.isles.client.renderer.CutscenePlayerModel normalModel = null;
+    private static com.isles.client.renderer.CutscenePlayerModel slimModel = null;
+    private static net.minecraft.client.CameraType originalPerspective = net.minecraft.client.CameraType.FIRST_PERSON;
+
+    public static com.isles.client.renderer.CutscenePlayerModel getCustomModel(boolean slim) {
+        if (normalModel == null) {
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+            normalModel = new com.isles.client.renderer.CutscenePlayerModel(mc.getEntityModels().bakeLayer(net.minecraft.client.model.geom.ModelLayers.PLAYER), false);
+            slimModel = new com.isles.client.renderer.CutscenePlayerModel(mc.getEntityModels().bakeLayer(net.minecraft.client.model.geom.ModelLayers.PLAYER_SLIM), true);
+        }
+        return slim ? slimModel : normalModel;
+    }
+
     public static void start(
         int totalTicks,
+        int rendererChangeTicks,
         int card1Ticks,
         int gap1Ticks,
         int card2Ticks,
@@ -53,6 +72,7 @@ public final class CutsceneClientState {
         CutsceneClientState.ending = false;
         CutsceneClientState.totalTicks = Math.max(1, totalTicks);
         CutsceneClientState.elapsedTicks = 0;
+        CutsceneClientState.rendererChangeTicks = Math.max(0, rendererChangeTicks);
         CutsceneClientState.card1Ticks = Math.max(0, card1Ticks);
         CutsceneClientState.gap1Ticks = Math.max(0, gap1Ticks);
         CutsceneClientState.card2Ticks = Math.max(0, card2Ticks);
@@ -71,13 +91,27 @@ public final class CutsceneClientState {
         CutsceneClientState.card4Title = card4Title == null ? "" : card4Title;
         CutsceneClientState.card4Subtitle = card4Subtitle == null ? "" : card4Subtitle;
         CutsceneClientState.scrollText = scrollText == null ? "" : scrollText;
+
+        try {
+            currentAnimation = com.isles.client.AnimationLoader.loadBedrockAnimation(MODEL_ANIM_RESOURCE, MODEL_ANIM_NAME);
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+            originalPerspective = mc.options.getCameraType();
+            mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK);
+        } catch (Exception e) {
+            currentAnimation = null;
+        }
     }
 
     public static void end() {
+        if (active) {
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+            mc.options.setCameraType(originalPerspective);
+        }
         CutsceneClientState.active = false;
         CutsceneClientState.ending = false;
         CutsceneClientState.totalTicks = 0;
         CutsceneClientState.elapsedTicks = 0;
+        CutsceneClientState.rendererChangeTicks = 0;
         CutsceneClientState.card1Ticks = 0;
         CutsceneClientState.gap1Ticks = 0;
         CutsceneClientState.card2Ticks = 0;
@@ -96,6 +130,22 @@ public final class CutsceneClientState {
         CutsceneClientState.card4Title = "";
         CutsceneClientState.card4Subtitle = "";
         CutsceneClientState.scrollText = "";
+        currentAnimation = null;
+    }
+
+    public static com.isles.client.AnimationLoader.BedrockAnimation getCurrentAnimation() {
+        return currentAnimation;
+    }
+
+    private static float partialTicks = 0f;
+
+    public static void setPartialTicks(float pt) {
+        partialTicks = pt;
+    }
+
+    public static float getInterpolatedTicks() {
+        if (!active) return 0f;
+        return elapsedTicks + partialTicks;
     }
 
     public static boolean isActive() {
@@ -112,6 +162,10 @@ public final class CutsceneClientState {
 
     public static int getElapsedTicks() {
         return elapsedTicks;
+    }
+
+    public static int getRendererChangeTicks() {
+        return rendererChangeTicks;
     }
 
     public static int getCard1Ticks() {

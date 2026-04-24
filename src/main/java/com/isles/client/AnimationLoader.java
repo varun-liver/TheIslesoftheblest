@@ -71,7 +71,8 @@ public final class AnimationLoader {
 
                     KeyframeChannel rotation = parseKeyframeChannel(boneObj.get("rotation"));
                     KeyframeChannel position = parseKeyframeChannel(boneObj.get("position"));
-                    bones.put(boneName, new BoneAnimation(rotation, position));
+                    KeyframeChannel scale = parseKeyframeChannel(boneObj.get("scale"));
+                    bones.put(boneName, new BoneAnimation(rotation, position, scale));
                 }
             }
 
@@ -94,10 +95,10 @@ public final class AnimationLoader {
 
     private static KeyframeChannel parseKeyframeChannel(JsonElement channelEl) {
         if (channelEl == null || channelEl.isJsonNull()) {
-            return KeyframeChannel.EMPTY;
+            return KeyframeChannel.IDENTITY;
         }
         if (!channelEl.isJsonObject()) {
-            return KeyframeChannel.EMPTY;
+            return KeyframeChannel.IDENTITY;
         }
 
         JsonObject channelObj = channelEl.getAsJsonObject();
@@ -111,16 +112,28 @@ public final class AnimationLoader {
                 continue;
             }
 
-            if (!entry.getValue().isJsonArray()) continue;
-            JsonArray arr = entry.getValue().getAsJsonArray();
-            if (arr.size() < 3) continue;
+            JsonArray arr = null;
+            if (entry.getValue().isJsonArray()) {
+                arr = entry.getValue().getAsJsonArray();
+            } else if (entry.getValue().isJsonObject()) {
+                JsonObject obj = entry.getValue().getAsJsonObject();
+                if (obj.has("post")) {
+                    JsonElement postEl = obj.get("post");
+                    if (postEl.isJsonArray()) arr = postEl.getAsJsonArray();
+                } else if (obj.has("pre")) {
+                    JsonElement preEl = obj.get("pre");
+                    if (preEl.isJsonArray()) arr = preEl.getAsJsonArray();
+                }
+            }
+
+            if (arr == null || arr.size() < 3) continue;
             float x = arr.get(0).getAsFloat();
             float y = arr.get(1).getAsFloat();
             float z = arr.get(2).getAsFloat();
             keys.add(new Keyframe(time, x, y, z));
         }
 
-        if (keys.isEmpty()) return KeyframeChannel.EMPTY;
+        if (keys.isEmpty()) return KeyframeChannel.IDENTITY;
         keys.sort(Comparator.comparingDouble(k -> k.time));
         return new KeyframeChannel(keys);
     }
@@ -141,23 +154,31 @@ public final class AnimationLoader {
         public float[] sampleRotation(String boneName, float timeSeconds) {
             BoneAnimation bone = bones.get(normalizeBoneName(boneName));
             if (bone == null) return new float[]{0f, 0f, 0f};
-            return bone.rotation.sample(timeSeconds);
+            return bone.rotation.sample(timeSeconds, 0f);
         }
 
         public float[] samplePosition(String boneName, float timeSeconds) {
             BoneAnimation bone = bones.get(normalizeBoneName(boneName));
             if (bone == null) return new float[]{0f, 0f, 0f};
-            return bone.position.sample(timeSeconds);
+            return bone.position.sample(timeSeconds, 0f);
+        }
+
+        public float[] sampleScale(String boneName, float timeSeconds) {
+            BoneAnimation bone = bones.get(normalizeBoneName(boneName));
+            if (bone == null) return new float[]{1f, 1f, 1f};
+            return bone.scale.sample(timeSeconds, 1f);
         }
     }
 
     public static final class BoneAnimation {
         private final KeyframeChannel rotation;
         private final KeyframeChannel position;
+        private final KeyframeChannel scale;
 
-        private BoneAnimation(KeyframeChannel rotation, KeyframeChannel position) {
-            this.rotation = rotation == null ? KeyframeChannel.EMPTY : rotation;
-            this.position = position == null ? KeyframeChannel.EMPTY : position;
+        private BoneAnimation(KeyframeChannel rotation, KeyframeChannel position, KeyframeChannel scale) {
+            this.rotation = rotation == null ? KeyframeChannel.IDENTITY : rotation;
+            this.position = position == null ? KeyframeChannel.IDENTITY : position;
+            this.scale = scale == null ? KeyframeChannel.IDENTITY : scale;
         }
     }
 
@@ -176,7 +197,7 @@ public final class AnimationLoader {
     }
 
     private static final class KeyframeChannel {
-        static final KeyframeChannel EMPTY = new KeyframeChannel(List.of());
+        static final KeyframeChannel IDENTITY = new KeyframeChannel(List.of());
 
         private final float[] times;
         private final float[][] values;
@@ -193,8 +214,8 @@ public final class AnimationLoader {
             }
         }
 
-        float[] sample(float t) {
-            if (times.length == 0) return new float[]{0f, 0f, 0f};
+        float[] sample(float t, float defaultValue) {
+            if (times.length == 0) return new float[]{defaultValue, defaultValue, defaultValue};
             if (t <= times[0]) return values[0].clone();
             int last = times.length - 1;
             if (t >= times[last]) return values[last].clone();
@@ -218,3 +239,4 @@ public final class AnimationLoader {
         }
     }
 }
+

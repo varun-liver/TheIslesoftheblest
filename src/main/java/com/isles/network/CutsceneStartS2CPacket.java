@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 
 public final class CutsceneStartS2CPacket {
     public final int totalTicks;
+    public final int rendererChangeTicks;
     public final int card1Ticks;
     public final int gap1Ticks;
     public final int card2Ticks;
@@ -32,6 +33,7 @@ public final class CutsceneStartS2CPacket {
 
     public CutsceneStartS2CPacket(
         int totalTicks,
+        int rendererChangeTicks,
         int card1Ticks,
         int gap1Ticks,
         int card2Ticks,
@@ -52,6 +54,7 @@ public final class CutsceneStartS2CPacket {
         String scrollText
     ) {
         this.totalTicks = totalTicks;
+        this.rendererChangeTicks = rendererChangeTicks;
         this.card1Ticks = card1Ticks;
         this.gap1Ticks = gap1Ticks;
         this.card2Ticks = card2Ticks;
@@ -74,6 +77,7 @@ public final class CutsceneStartS2CPacket {
 
     public static void encode(CutsceneStartS2CPacket msg, FriendlyByteBuf buf) {
         buf.writeVarInt(msg.totalTicks);
+        buf.writeVarInt(msg.rendererChangeTicks);
         buf.writeVarInt(msg.card1Ticks);
         buf.writeVarInt(msg.gap1Ticks);
         buf.writeVarInt(msg.card2Ticks);
@@ -97,6 +101,7 @@ public final class CutsceneStartS2CPacket {
 
     public static CutsceneStartS2CPacket decode(FriendlyByteBuf buf) {
         int totalTicks = buf.readVarInt();
+        int rendererChangeTicks = buf.readVarInt();
         int card1Ticks = buf.readVarInt();
         int gap1Ticks = buf.readVarInt();
         int card2Ticks = buf.readVarInt();
@@ -117,6 +122,7 @@ public final class CutsceneStartS2CPacket {
         String scrollText = buf.readUtf(8192);
         return new CutsceneStartS2CPacket(
             totalTicks,
+            rendererChangeTicks,
             card1Ticks,
             gap1Ticks,
             card2Ticks,
@@ -143,6 +149,7 @@ public final class CutsceneStartS2CPacket {
         ctx.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             CutsceneClientState.start(
                 msg.totalTicks,
+                msg.rendererChangeTicks,
                 msg.card1Ticks,
                 msg.gap1Ticks,
                 msg.card2Ticks,

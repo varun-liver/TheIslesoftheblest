@@ -198,6 +198,15 @@ public class TheinfectionEntity extends Monster {
                     entity.moveTo(pos.getX(), pos.getY(), pos.getZ(), 0, 0);
                     level.addFreshEntity(entity);
                 }
+                if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    serverLevel.sendParticles(
+                            blest.glowing_stars.get(),
+                            pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
+                            8,
+                            0.35, 0.35, 0.35,
+                            0.01
+                    );
+                }
             }
         }
     }

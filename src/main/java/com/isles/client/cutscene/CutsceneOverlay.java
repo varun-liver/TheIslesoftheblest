@@ -30,14 +30,24 @@ public final class CutsceneOverlay {
     private static String cachedScrollText = "";
     private static List<FormattedCharSequence> cachedWrappedScroll = List.of();
     private static boolean scrollDoneSent = false;
+    private static boolean shaderActive = false;
 
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
+        boolean wasActive = CutsceneClientState.isActive();
         CutsceneClientState.clientTick();
-        if (!CutsceneClientState.isActive()) {
-            // reset per-run cache
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null) return;
+
+        if (wasActive && !CutsceneClientState.isActive()) {
+            // Cutscene just ended
             scrollDoneSent = false;
+            shaderActive = false;
+            if (mc.gameRenderer != null) {
+                mc.tell(() -> mc.gameRenderer.shutdownEffect());
+            }
         }
     }
 
@@ -48,18 +58,35 @@ public final class CutsceneOverlay {
         Minecraft mc = Minecraft.getInstance();
         if (mc == null) return;
 
+        // Ensure grayscale shader is loaded when the cutscene is active
+        if (!shaderActive && mc.gameRenderer != null) {
+            shaderActive = true;
+            mc.tell(() -> {
+                mc.gameRenderer.loadEffect(new net.minecraft.resources.ResourceLocation("minecraft", "shaders/post/desaturate.json"));
+            });
+        }
+
+        
+        int total = CutsceneClientState.getTotalTicks();
+        int elapsed = CutsceneClientState.getElapsedTicks();
+        float partial = mc.getFrameTime();
+        CutsceneClientState.setPartialTicks(partial);
+
         GuiGraphics gg = event.getGuiGraphics();
         int w = gg.guiWidth();
         int h = gg.guiHeight();
 
-        int total = CutsceneClientState.getTotalTicks();
-        int elapsed = CutsceneClientState.getElapsedTicks();
-        float partial = mc.getFrameTime();
+        int rendererChangeTicks = CutsceneClientState.getRendererChangeTicks();
+        float now = elapsed + partial;
 
         // Fade in/out to black; stays fully black during the cutscene body.
-        int fadeTicks = Math.max(1, Math.min(20, total / 4));
-        float fadeIn = clamp01((elapsed + partial) / fadeTicks);
-        float fadeOut = clamp01((total - (elapsed + partial)) / fadeTicks);
+        // We start the fade in AFTER the renderer change phase.
+        float overlayNow = now - rendererChangeTicks;
+        int overlayTotal = total - rendererChangeTicks;
+        
+        int fadeTicks = Math.max(1, Math.min(20, overlayTotal / 4));
+        float fadeIn = clamp01(overlayNow / fadeTicks);
+        float fadeOut = clamp01((overlayTotal - overlayNow) / fadeTicks);
         float blackAlpha = smoothstep(Math.min(fadeIn, fadeOut));
 
         int a = (int) (blackAlpha * 255.0f);
@@ -93,26 +120,24 @@ public final class CutsceneOverlay {
         int tScrollStart = tGap4Start + gap4Ticks;
         int tScrollEnd = tScrollStart + scrollTicks;
 
-        float now = elapsed + partial;
-
-        if (now >= tCard1Start && now < tGap1Start) {
-            drawCard(gg, font, w, h, now - tCard1Start, card1Ticks, CutsceneClientState.getCard1Title(), CutsceneClientState.getCard1Subtitle());
+        if (overlayNow >= tCard1Start && overlayNow < tGap1Start) {
+            drawCard(gg, font, w, h, overlayNow - tCard1Start, card1Ticks, CutsceneClientState.getCard1Title(), CutsceneClientState.getCard1Subtitle());
             return;
         }
-        if (now >= tCard2Start && now < tGap2Start) {
-            drawCard(gg, font, w, h, now - tCard2Start, card2Ticks, CutsceneClientState.getCard2Title(), CutsceneClientState.getCard2Subtitle());
+        if (overlayNow >= tCard2Start && overlayNow < tGap2Start) {
+            drawCard(gg, font, w, h, overlayNow - tCard2Start, card2Ticks, CutsceneClientState.getCard2Title(), CutsceneClientState.getCard2Subtitle());
             return;
         }
-        if (now >= tCard3Start && now < tGap3Start) {
-            drawCard(gg, font, w, h, now - tCard3Start, card3Ticks, CutsceneClientState.getCard3Title(), CutsceneClientState.getCard3Subtitle());
+        if (overlayNow >= tCard3Start && overlayNow < tGap3Start) {
+            drawCard(gg, font, w, h, overlayNow - tCard3Start, card3Ticks, CutsceneClientState.getCard3Title(), CutsceneClientState.getCard3Subtitle());
             return;
         }
-        if (now >= tCard4Start && now < tGap4Start) {
-            drawCard(gg, font, w, h, now - tCard4Start, card4Ticks, CutsceneClientState.getCard4Title(), CutsceneClientState.getCard4Subtitle());
+        if (overlayNow >= tCard4Start && overlayNow < tGap4Start) {
+            drawCard(gg, font, w, h, overlayNow - tCard4Start, card4Ticks, CutsceneClientState.getCard4Title(), CutsceneClientState.getCard4Subtitle());
             return;
         }
-        if (now >= tScrollStart && now < tScrollEnd) {
-            drawScroll(gg, font, w, h, now - tScrollStart, scrollTicks, CutsceneClientState.getScrollText());
+        if (overlayNow >= tScrollStart && overlayNow < tScrollEnd) {
+            drawScroll(gg, font, w, h, overlayNow - tScrollStart, scrollTicks, CutsceneClientState.getScrollText());
         }
     }
 

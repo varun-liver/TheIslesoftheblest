@@ -18,6 +18,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.block.Block;
@@ -93,8 +95,13 @@ public class blest {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
     // Create a Deferred Register to hold SoundEvents
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
+    // Create a Deferred Register to hold ParticleTypes
+    public static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, MODID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "theislesoftheblest" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+
+    // Keep lower-case field name for compatibility with existing references in the codebase.
+    public static final RegistryObject<SimpleParticleType> glowing_stars = PARTICLE_TYPES.register("glowing_stars", () -> new SimpleParticleType(true));
 
     public static final DeferredRegister<com.mojang.serialization.Codec<? extends net.minecraft.world.level.biome.BiomeSource>> BIOME_SOURCE_CODECS = DeferredRegister.create(Registries.BIOME_SOURCE, MODID);
     public static final RegistryObject<com.mojang.serialization.Codec<com.isles.worldgen.InfectionBiomeSource>> INFECTION_BIOME_SOURCE = BIOME_SOURCE_CODECS.register("infection_biome_source", () -> com.isles.worldgen.InfectionBiomeSource.CODEC);
@@ -432,6 +439,8 @@ public class blest {
         BLOCK_ENTITIES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so sounds get registered
         SOUND_EVENTS.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so particle types get registered
+        PARTICLE_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
         BIOME_SOURCE_CODECS.register(modEventBus);
@@ -559,6 +568,143 @@ public class blest {
     public static class ForgeClientEvents {
         private static final ResourceLocation INFECTION_BAR = ResourceLocation.fromNamespaceAndPath(blest.MODID, "textures/bossbars/theinfection.png");
         private static final ResourceLocation GUARDIAN_BAR = ResourceLocation.fromNamespaceAndPath(blest.MODID, "textures/bossbars/theguardian.png");
+
+        @SubscribeEvent
+        public static void onMovementInput(net.minecraftforge.client.event.MovementInputUpdateEvent event) {
+            if (com.isles.client.cutscene.CutsceneClientState.isActive()) {
+                net.minecraft.client.player.Input input = event.getInput();
+                input.forwardImpulse = 0;
+                input.leftImpulse = 0;
+                input.up = false;
+                input.down = false;
+                input.left = false;
+                input.right = false;
+                input.jumping = false;
+                input.shiftKeyDown = false;
+            }
+        }
+
+        @SubscribeEvent
+        public static void onComputeCamera(net.minecraftforge.client.event.ViewportEvent.ComputeCameraAngles event) {
+            if (!com.isles.client.cutscene.CutsceneClientState.isActive()) return;
+            com.isles.client.AnimationLoader.BedrockAnimation anim = com.isles.client.cutscene.CutsceneClientState.getCurrentAnimation();
+            if (anim == null) return;
+
+            float time = com.isles.client.cutscene.CutsceneClientState.getInterpolatedTicks() / 20.0f;
+
+            float[] camPos = anim.samplePosition("camera", time);
+            float[] camRot = anim.sampleRotation("camera", time);
+
+            Player player = Minecraft.getInstance().player;
+            if (player == null) return;
+
+            // Absolute camera positioning relative to player
+            // Bedrock coordinates: X is Right (+X), Y is Up (+Y), Z is Forward (+Z)
+            // Minecraft coordinates: X is Right (+X), Y is Up (+Y), Z is Forward (-Z)
+            double dx = camPos[0] / 16.0;
+            double dy = camPos[1] / 16.0;
+            double dz = -camPos[2] / 16.0; // Invert Z for Minecraft space
+
+            // Move camera relative to player for the cutscene
+            try {
+                net.minecraft.client.Camera camera = event.getCamera();
+                net.minecraft.world.phys.Vec3 eyePos = player.getEyePosition(com.isles.client.cutscene.CutsceneClientState.getInterpolatedTicks() % 1.0f);
+                
+                // Calculate absolute camera position
+                net.minecraft.world.phys.Vec3 finalPos = eyePos.add(dx, dy, dz);
+                
+                java.lang.reflect.Field posField = net.minecraft.client.Camera.class.getDeclaredField("position");
+                posField.setAccessible(true);
+                posField.set(camera, finalPos);
+
+                // Calculate where the head actually is after animation
+                float[] groupPos = anim.samplePosition("group", time);
+                net.minecraft.world.phys.Vec3 targetPos = eyePos.add(groupPos[0] / 16.0, groupPos[1] / 16.0, -groupPos[2] / 16.0);
+
+                // Vector from camera to animated head
+                double diffX = targetPos.x - finalPos.x;
+                double diffY = targetPos.y - finalPos.y;
+                double diffZ = targetPos.z - finalPos.z;
+                double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
+
+                float newYaw = (float) (Math.toDegrees(Math.atan2(diffZ, diffX)) - 90.0);
+                float newPitch = (float) (-Math.toDegrees(Math.atan2(diffY, dist)));
+
+                event.setYaw(newYaw);
+                event.setPitch(newPitch);
+            } catch (Exception e) {}
+        }
+
+        private static net.minecraft.client.model.EntityModel<?> originalModel = null;
+
+        @SubscribeEvent
+        public static void onRenderPlayerPre(net.minecraftforge.client.event.RenderPlayerEvent.Pre event) {
+            if (!com.isles.client.cutscene.CutsceneClientState.isActive()) return;
+            
+            // Determine if the model is slim using reflection.
+            boolean slim = false;
+            try {
+                java.lang.reflect.Field slimField = net.minecraft.client.model.PlayerModel.class.getDeclaredField("slim");
+                slimField.setAccessible(true);
+                slim = (boolean) slimField.get(event.getRenderer().getModel());
+            } catch (Exception e) {}
+
+            com.isles.client.renderer.CutscenePlayerModel custom = com.isles.client.cutscene.CutsceneClientState.getCustomModel(slim);
+            
+            // Store original model to restore in Post
+            try {
+                java.lang.reflect.Field modelField = net.minecraft.client.renderer.entity.LivingEntityRenderer.class.getDeclaredField("model");
+                modelField.setAccessible(true);
+                originalModel = (net.minecraft.client.model.EntityModel<?>) modelField.get(event.getRenderer());
+                modelField.set(event.getRenderer(), custom);
+            } catch (Exception e) {
+                originalModel = null;
+            }
+            
+            // Move the player according to "group" bone
+            com.isles.client.AnimationLoader.BedrockAnimation anim = com.isles.client.cutscene.CutsceneClientState.getCurrentAnimation();
+            if (anim != null) {
+                float time = com.isles.client.cutscene.CutsceneClientState.getInterpolatedTicks() / 20.0f;
+                float[] groupPos = anim.samplePosition("group", time);
+                float[] groupRot = anim.sampleRotation("group", time);
+                
+                com.mojang.blaze3d.vertex.PoseStack poseStack = event.getPoseStack();
+                poseStack.pushPose();
+
+                // Bedrock coordinates to Minecraft: 
+                // BB X is Right (+X), Y is Up (+Y), Z is Forward (+Z in BB, but MC Z is different)
+                // We'll apply translation first, then rotation.
+                // To prevent "tilting into floor", we move the pivot to the center of the body (y ~ 0.9)
+                poseStack.translate(groupPos[0] / 16.0, (groupPos[1] / 16.0) + 0.9, groupPos[2] / 16.0);
+                
+                poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-groupRot[1]));
+                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(groupRot[0]));
+                poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(groupRot[2]));
+                
+                poseStack.translate(0, -0.9, 0);
+            }
+        }
+
+        @SubscribeEvent
+        public static void onRenderPlayerPost(net.minecraftforge.client.event.RenderPlayerEvent.Post event) {
+            if (!com.isles.client.cutscene.CutsceneClientState.isActive()) return;
+            
+            // Restore original model
+            if (originalModel != null) {
+                try {
+                    java.lang.reflect.Field modelField = net.minecraft.client.renderer.entity.LivingEntityRenderer.class.getDeclaredField("model");
+                    modelField.setAccessible(true);
+                    modelField.set(event.getRenderer(), originalModel);
+                } catch (Exception e) {}
+                originalModel = null;
+            }
+
+            // Pop the pose we pushed in Pre
+            com.isles.client.AnimationLoader.BedrockAnimation anim = com.isles.client.cutscene.CutsceneClientState.getCurrentAnimation();
+            if (anim != null) {
+                event.getPoseStack().popPose();
+            }
+        }
 
         @SubscribeEvent
         public static void onBossBarRender(CustomizeGuiOverlayEvent.BossEventProgress event) {
