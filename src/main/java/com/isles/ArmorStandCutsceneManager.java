@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ArmorStandCutsceneManager {
 
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static final int CUTSCENE_ANIMATION_TICKS = 30;
     private static final List<AnimationInstance> ACTIVE_ANIMATIONS = new ArrayList<>();
     private static final Set<UUID> END_REQUESTS = ConcurrentHashMap.newKeySet();
 
@@ -59,8 +60,7 @@ public class ArmorStandCutsceneManager {
 
         // Start animation
         AnimationLoader.BedrockAnimation anim = getModelAnimation();
-        float lengthSeconds = (anim == null || anim.lengthSeconds <= 0f) ? 4.0f : anim.lengthSeconds;
-        int animTicks = Math.max(1, Math.round(lengthSeconds * 20.0f));
+        int animTicks = CUTSCENE_ANIMATION_TICKS;
 
         String resolvedScrollText = CutsceneContent.SCROLL_TEXT.replace("{player}", player.getName().getString());
         int scrollTicks = CutsceneContent.estimateScrollTicks(resolvedScrollText);

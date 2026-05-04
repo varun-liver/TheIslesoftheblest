@@ -67,16 +67,13 @@ import com.isles.portal.CloudPortalBlock;
 import com.isles.portal.CloudPortalIgniterItem;
 import com.isles.block.InfectionGrassBlock;
 import com.isles.block.InfectionBlock;
-
 import java.util.List;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraft.world.entity.player.Player;
-
 import net.minecraftforge.event.RegisterCommandsEvent;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.CommandSourceStack;
-
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(blest.MODID)
 public class blest {
@@ -590,7 +587,7 @@ public class blest {
             com.isles.client.AnimationLoader.BedrockAnimation anim = com.isles.client.cutscene.CutsceneClientState.getCurrentAnimation();
             if (anim == null) return;
 
-            float time = com.isles.client.cutscene.CutsceneClientState.getInterpolatedTicks() / 20.0f;
+            float time = com.isles.client.cutscene.CutsceneClientState.getAnimationTimeSeconds();
 
             float[] camPos = anim.samplePosition("camera", time);
             float[] camRot = anim.sampleRotation("camera", time);
@@ -602,33 +599,47 @@ public class blest {
             // Bedrock coordinates: X is Right (+X), Y is Up (+Y), Z is Forward (+Z)
             // Minecraft coordinates: X is Right (+X), Y is Up (+Y), Z is Forward (-Z)
             double dx = camPos[0] / 16.0;
-            double dy = camPos[1] / 16.0;
-            double dz = -camPos[2] / 16.0; // Invert Z for Minecraft space
+            double dy = (camPos[1] / 16.0) - 0.08;
+            double dz = (-camPos[2] / 16.0) - 0.35; // Move the camera lower on depth toward the head
 
             // Move camera relative to player for the cutscene
             try {
                 net.minecraft.client.Camera camera = event.getCamera();
                 net.minecraft.world.phys.Vec3 eyePos = player.getEyePosition(com.isles.client.cutscene.CutsceneClientState.getInterpolatedTicks() % 1.0f);
                 
-                // Calculate absolute camera position
-                net.minecraft.world.phys.Vec3 finalPos = eyePos.add(dx, dy, dz);
+                // Calculate and smooth absolute camera position.
+                net.minecraft.world.phys.Vec3 targetCameraPos = eyePos.add(dx, dy, dz);
                 
+                // Aim at the actual player head/eye position in world space.
+                net.minecraft.world.phys.Vec3 targetPos = player.getEyePosition(com.isles.client.cutscene.CutsceneClientState.getInterpolatedTicks() % 1.0f).add(
+                    -0.24,
+                    0.0,
+                    0.0
+                );
+
+                // Vector from camera to the head target.
+                net.minecraft.world.phys.Vec3 finalPos = com.isles.client.cutscene.CutsceneClientState.smoothCameraPosition(targetCameraPos, 0.18);
+
                 java.lang.reflect.Field posField = net.minecraft.client.Camera.class.getDeclaredField("position");
                 posField.setAccessible(true);
                 posField.set(camera, finalPos);
 
-                // Calculate where the head actually is after animation
-                float[] groupPos = anim.samplePosition("group", time);
-                net.minecraft.world.phys.Vec3 targetPos = eyePos.add(groupPos[0] / 16.0, groupPos[1] / 16.0, -groupPos[2] / 16.0);
-
-                // Vector from camera to animated head
                 double diffX = targetPos.x - finalPos.x;
                 double diffY = targetPos.y - finalPos.y;
                 double diffZ = targetPos.z - finalPos.z;
+                double distanceSq = diffX * diffX + diffY * diffY + diffZ * diffZ;
+                if (distanceSq < 0.09) {
+                    // Prevent angle flips when the camera gets too close to the head target.
+                    diffZ = -0.3;
+                    diffY = -0.02;
+                    diffX = 0.0;
+                }
                 double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
 
-                float newYaw = (float) (Math.toDegrees(Math.atan2(diffZ, diffX)) - 90.0);
-                float newPitch = (float) (-Math.toDegrees(Math.atan2(diffY, dist)));
+                float targetYaw = (float) (Math.toDegrees(Math.atan2(diffZ, diffX)) - 90.0);
+                float targetPitch = (float) (Math.toDegrees(Math.atan2(diffY, dist)));
+                float newYaw = targetYaw;
+                float newPitch = targetPitch;
 
                 event.setYaw(newYaw);
                 event.setPitch(newPitch);
@@ -640,70 +651,40 @@ public class blest {
         @SubscribeEvent
         public static void onRenderPlayerPre(net.minecraftforge.client.event.RenderPlayerEvent.Pre event) {
             if (!com.isles.client.cutscene.CutsceneClientState.isActive()) return;
-            
-            // Determine if the model is slim using reflection.
+            com.isles.client.AnimationLoader.BedrockAnimation anim = com.isles.client.cutscene.CutsceneClientState.getCurrentAnimation();
+            if (anim == null) return;
+
             boolean slim = false;
             try {
                 java.lang.reflect.Field slimField = net.minecraft.client.model.PlayerModel.class.getDeclaredField("slim");
                 slimField.setAccessible(true);
                 slim = (boolean) slimField.get(event.getRenderer().getModel());
-            } catch (Exception e) {}
+            } catch (Exception ignored) {}
 
             com.isles.client.renderer.CutscenePlayerModel custom = com.isles.client.cutscene.CutsceneClientState.getCustomModel(slim);
-            
-            // Store original model to restore in Post
             try {
                 java.lang.reflect.Field modelField = net.minecraft.client.renderer.entity.LivingEntityRenderer.class.getDeclaredField("model");
                 modelField.setAccessible(true);
                 originalModel = (net.minecraft.client.model.EntityModel<?>) modelField.get(event.getRenderer());
                 modelField.set(event.getRenderer(), custom);
-            } catch (Exception e) {
+            } catch (Exception ignored) {
                 originalModel = null;
-            }
-            
-            // Move the player according to "group" bone
-            com.isles.client.AnimationLoader.BedrockAnimation anim = com.isles.client.cutscene.CutsceneClientState.getCurrentAnimation();
-            if (anim != null) {
-                float time = com.isles.client.cutscene.CutsceneClientState.getInterpolatedTicks() / 20.0f;
-                float[] groupPos = anim.samplePosition("group", time);
-                float[] groupRot = anim.sampleRotation("group", time);
-                
-                com.mojang.blaze3d.vertex.PoseStack poseStack = event.getPoseStack();
-                poseStack.pushPose();
-
-                // Bedrock coordinates to Minecraft: 
-                // BB X is Right (+X), Y is Up (+Y), Z is Forward (+Z in BB, but MC Z is different)
-                // We'll apply translation first, then rotation.
-                // To prevent "tilting into floor", we move the pivot to the center of the body (y ~ 0.9)
-                poseStack.translate(groupPos[0] / 16.0, (groupPos[1] / 16.0) + 0.9, groupPos[2] / 16.0);
-                
-                poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-groupRot[1]));
-                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(groupRot[0]));
-                poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(groupRot[2]));
-                
-                poseStack.translate(0, -0.9, 0);
             }
         }
 
         @SubscribeEvent
         public static void onRenderPlayerPost(net.minecraftforge.client.event.RenderPlayerEvent.Post event) {
             if (!com.isles.client.cutscene.CutsceneClientState.isActive()) return;
-            
-            // Restore original model
+
             if (originalModel != null) {
                 try {
                     java.lang.reflect.Field modelField = net.minecraft.client.renderer.entity.LivingEntityRenderer.class.getDeclaredField("model");
                     modelField.setAccessible(true);
                     modelField.set(event.getRenderer(), originalModel);
-                } catch (Exception e) {}
+                } catch (Exception ignored) {}
                 originalModel = null;
             }
 
-            // Pop the pose we pushed in Pre
-            com.isles.client.AnimationLoader.BedrockAnimation anim = com.isles.client.cutscene.CutsceneClientState.getCurrentAnimation();
-            if (anim != null) {
-                event.getPoseStack().popPose();
-            }
         }
 
         @SubscribeEvent

@@ -16,32 +16,57 @@ public class CutscenePlayerModel extends PlayerModel<Player> {
     @Override
     public void setupAnim(Player entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         super.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-        
+        applyCutscenePose(this);
+    }
+
+    public static void applyCutscenePose(PlayerModel<?> model) {
         if (!CutsceneClientState.isActive()) return;
         AnimationLoader.BedrockAnimation anim = CutsceneClientState.getCurrentAnimation();
         if (anim == null) return;
 
-        float time = CutsceneClientState.getInterpolatedTicks() / 20.0f;
+        float time = CutsceneClientState.getAnimationTimeSeconds();
 
-        // Apply rotations to limbs if present in JSON
-        applyBone(this.leftLeg, anim, "leg1", time);
-        applyBone(this.rightLeg, anim, "leg2", time);
-        applyBone(this.leftArm, anim, "arm1", time);
-        applyBone(this.rightArm, anim, "arm2", time);
-        
-        // Armor/Outer layers
-        applyBone(this.leftPants, anim, "leg1", time);
-        applyBone(this.rightPants, anim, "leg2", time);
-        applyBone(this.leftSleeve, anim, "arm1", time);
-        applyBone(this.rightSleeve, anim, "arm2", time);
+        // Apply rotations and positions to all parts
+        applyBone(model.head, anim, "head", time);
+        applyBone(model.hat, anim, "head", time);
+
+        applyBone(model.body, anim, "body", time);
+        applyBone(model.jacket, anim, "body", time);
+
+        // Arms - support both arm1/arm2 and left_arm/right_arm
+        String leftArmName = anim.hasBone("arm1") ? "arm1" : "left_arm";
+        applyBone(model.leftArm, anim, leftArmName, time);
+        applyBone(model.leftSleeve, anim, leftArmName, time);
+
+        String rightArmName = anim.hasBone("arm2") ? "arm2" : "right_arm";
+        applyBone(model.rightArm, anim, rightArmName, time);
+        applyBone(model.rightSleeve, anim, rightArmName, time);
+
+        // Legs - support both leg1/leg2 and left_leg/right_leg
+        String leftLegName = anim.hasBone("leg1") ? "leg1" : "left_leg";
+        applyBone(model.leftLeg, anim, leftLegName, time);
+        applyBone(model.leftPants, anim, leftLegName, time);
+
+        String rightLegName = anim.hasBone("leg2") ? "leg2" : "right_leg";
+        applyBone(model.rightLeg, anim, rightLegName, time);
+        applyBone(model.rightPants, anim, rightLegName, time);
     }
 
-    private void applyBone(ModelPart part, AnimationLoader.BedrockAnimation anim, String boneName, float time) {
+    private static void applyBone(ModelPart part, AnimationLoader.BedrockAnimation anim, String boneName, float time) {
         if (anim.hasBone(boneName)) {
+            // Rotation (Degrees to Radians)
             float[] rot = anim.sampleRotation(boneName, time);
             part.xRot = (float) Math.toRadians(rot[0]);
             part.yRot = (float) Math.toRadians(rot[1]);
             part.zRot = (float) Math.toRadians(rot[2]);
+
+            // Position (Bedrock relative offset)
+            float[] pos = anim.samplePosition(boneName, time);
+            // We apply position as an offset to the part's default pivot
+            // Note: In Minecraft model space, Y is down, so we invert Bedrock's Up Y.
+            part.x += pos[0];
+            part.y -= pos[1]; 
+            part.z += pos[2];
         }
     }
 
@@ -57,6 +82,16 @@ public class CutscenePlayerModel extends PlayerModel<Player> {
             super.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
             return;
         }
+
+        float time = CutsceneClientState.getAnimationTimeSeconds();
+        float[] groupPos = anim.samplePosition("group", time);
+        float[] groupRot = anim.sampleRotation("group", time);
+
+        poseStack.pushPose();
+        poseStack.translate(groupPos[0] / 16.0F, 0.0F, groupPos[2] / 16.0F);
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-groupRot[1]));
+        poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(groupRot[0]));
+        poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(groupRot[2]));
 
         // Render parts with scaling
         renderPartWithScale(this.head, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha, anim, "head");
@@ -75,7 +110,9 @@ public class CutscenePlayerModel extends PlayerModel<Player> {
 
         renderPartWithScale(this.rightLeg, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha, anim, "leg2");
         renderPartWithScale(this.rightPants, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha, anim, "leg2");
-        
+
+        poseStack.popPose();
+
         // Skip ear and cloak for simplicity since they are private and usually not used in cutscenes
     }
 
@@ -85,7 +122,7 @@ public class CutscenePlayerModel extends PlayerModel<Player> {
             return;
         }
         
-        float time = CutsceneClientState.getInterpolatedTicks() / 20.0f;
+        float time = CutsceneClientState.getAnimationTimeSeconds();
         float[] scale = anim.sampleScale(boneName, time);
         
         poseStack.pushPose();

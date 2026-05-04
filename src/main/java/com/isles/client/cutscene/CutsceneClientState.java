@@ -36,6 +36,10 @@ public final class CutsceneClientState {
     private static com.isles.client.renderer.CutscenePlayerModel normalModel = null;
     private static com.isles.client.renderer.CutscenePlayerModel slimModel = null;
     private static net.minecraft.client.CameraType originalPerspective = net.minecraft.client.CameraType.FIRST_PERSON;
+    private static net.minecraft.world.phys.Vec3 smoothedCameraPos = net.minecraft.world.phys.Vec3.ZERO;
+    private static float smoothedCameraYaw = 0f;
+    private static float smoothedCameraPitch = 0f;
+    private static boolean cameraSmoothingInitialized = false;
 
     public static com.isles.client.renderer.CutscenePlayerModel getCustomModel(boolean slim) {
         if (normalModel == null) {
@@ -91,6 +95,10 @@ public final class CutsceneClientState {
         CutsceneClientState.card4Title = card4Title == null ? "" : card4Title;
         CutsceneClientState.card4Subtitle = card4Subtitle == null ? "" : card4Subtitle;
         CutsceneClientState.scrollText = scrollText == null ? "" : scrollText;
+        CutsceneClientState.smoothedCameraPos = net.minecraft.world.phys.Vec3.ZERO;
+        CutsceneClientState.smoothedCameraYaw = 0f;
+        CutsceneClientState.smoothedCameraPitch = 0f;
+        CutsceneClientState.cameraSmoothingInitialized = false;
 
         try {
             currentAnimation = com.isles.client.AnimationLoader.loadBedrockAnimation(MODEL_ANIM_RESOURCE, MODEL_ANIM_NAME);
@@ -131,6 +139,10 @@ public final class CutsceneClientState {
         CutsceneClientState.card4Subtitle = "";
         CutsceneClientState.scrollText = "";
         currentAnimation = null;
+        CutsceneClientState.smoothedCameraPos = net.minecraft.world.phys.Vec3.ZERO;
+        CutsceneClientState.smoothedCameraYaw = 0f;
+        CutsceneClientState.smoothedCameraPitch = 0f;
+        CutsceneClientState.cameraSmoothingInitialized = false;
     }
 
     public static com.isles.client.AnimationLoader.BedrockAnimation getCurrentAnimation() {
@@ -146,6 +158,12 @@ public final class CutsceneClientState {
     public static float getInterpolatedTicks() {
         if (!active) return 0f;
         return elapsedTicks + partialTicks;
+    }
+
+    public static float getAnimationTimeSeconds() {
+        if (!active || currentAnimation == null) return 0f;
+        float progress = clamp01(getInterpolatedTicks() / Math.max(1, rendererChangeTicks));
+        return currentAnimation.lengthSeconds * progress;
     }
 
     public static boolean isActive() {
@@ -238,6 +256,40 @@ public final class CutsceneClientState {
 
     public static String getScrollText() {
         return scrollText;
+    }
+
+    public static net.minecraft.world.phys.Vec3 smoothCameraPosition(net.minecraft.world.phys.Vec3 targetPos, double alpha) {
+        if (!cameraSmoothingInitialized) {
+            smoothedCameraPos = targetPos;
+            return smoothedCameraPos;
+        }
+        smoothedCameraPos = smoothedCameraPos.lerp(targetPos, clamp01(alpha));
+        return smoothedCameraPos;
+    }
+
+    public static float smoothCameraYaw(float targetYaw, float alpha) {
+        if (!cameraSmoothingInitialized) {
+            smoothedCameraYaw = targetYaw;
+            return smoothedCameraYaw;
+        }
+        smoothedCameraYaw = net.minecraft.util.Mth.rotLerp(clamp01(alpha), smoothedCameraYaw, targetYaw);
+        return smoothedCameraYaw;
+    }
+
+    public static float smoothCameraPitch(float targetPitch, float alpha) {
+        if (!cameraSmoothingInitialized) {
+            smoothedCameraPitch = targetPitch;
+            cameraSmoothingInitialized = true;
+            return smoothedCameraPitch;
+        }
+        smoothedCameraPitch += (targetPitch - smoothedCameraPitch) * clamp01(alpha);
+        return smoothedCameraPitch;
+    }
+
+    private static float clamp01(double value) {
+        if (value < 0.0) return 0f;
+        if (value > 1.0) return 1f;
+        return (float) value;
     }
 
     /**

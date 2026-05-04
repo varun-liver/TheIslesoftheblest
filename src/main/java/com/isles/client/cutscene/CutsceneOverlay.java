@@ -89,6 +89,15 @@ public final class CutsceneOverlay {
         float fadeOut = clamp01((overlayTotal - overlayNow) / fadeTicks);
         float blackAlpha = smoothstep(Math.min(fadeIn, fadeOut));
 
+        // During the animation phase, add a dedicated fade to black from tick 30 to tick 40.
+        float animationNow = now;
+        if (animationNow >= 30.0f && animationNow <= 40.0f) {
+            float animFade = smoothstep(clamp01((animationNow - 30.0f) / 10.0f));
+            blackAlpha = Math.max(blackAlpha, animFade);
+        } else if (animationNow > 40.0f && animationNow < rendererChangeTicks) {
+            blackAlpha = Math.max(blackAlpha, 1.0f);
+        }
+
         int a = (int) (blackAlpha * 255.0f);
         int argb = (a << 24); // black with alpha
         gg.fill(0, 0, w, h, argb);
